@@ -14,7 +14,7 @@
 
 Subscription app ใช้ **AI ผลิตโจทย์** เตรียมสอบ **TCAS** (v1 = Math + Physics → Chem → Bio). รายได้ subscription + token-based.
 **Solo founder** (พี่ Zen) → ทุก decision ต้อง "คนเดียวดูแลไหว"
-**สถานะ:** กำลัง build P1 (Next.js + Supabase scaffold) — code อยู่ `tcas-app/` (repo เดียวกับ root นี้ ไม่แยก git)
+**สถานะ:** P1 (Next.js + Supabase scaffold + schema) เสร็จแล้ว merge เข้า `main` แล้ว — code อยู่ `tcas-app/` (repo เดียวกับ root นี้ ไม่แยก git) · ต่อไป P2
 
 ---
 
