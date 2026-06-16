@@ -49,6 +49,9 @@ Subscription app ใช้ **AI ผลิตโจทย์** เตรียม
 
 ## 5. Working conventions
 
+- **GitHub:** `zennnne/tcas-ai-practice-app` (🔒 private) · default branch `main` · remote `origin` (https) · gh CLI login แล้ว
+  - `.gitignore` กัน secrets (`.env`/`*.key`/`service-account*.json`), Python/Node cache, Supabase temp ไว้แล้ว → อย่า commit secret ขึ้นไป
+  - commit/push เมื่อพี่ Zen สั่งเท่านั้น · ถ้าอยู่ `main` ให้ branch ก่อน
 - ยังไม่มี codebase → เมื่อเริ่มเขียนโค้ด ให้ **อัปเดตไฟล์นี้** (build/test/run commands, โครงโฟลเดอร์, conventions จริง)
 - `build_model.py` → reproduce financial model ได้ (แก้ assumptions ในชีต `Assumptions` แล้วเปิด Excel จะ recalc เอง)
 - ก่อนเคลม "เสร็จ/ผ่าน" → verify จริง (รัน/ดู output) ตามนิสัยการทำงาน
