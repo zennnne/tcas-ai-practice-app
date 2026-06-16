@@ -1,0 +1,43 @@
+# === Secrets / env ===
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+service-account*.json
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === Node / web (เผื่ออนาคต) ===
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+*.log
+npm-debug.log*
+
+# === Supabase ===
+.branches/
+.temp/
+supabase/.env
+
+# === Excel temp ===
+~$*.xlsx
+
+# === OS / editor ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
