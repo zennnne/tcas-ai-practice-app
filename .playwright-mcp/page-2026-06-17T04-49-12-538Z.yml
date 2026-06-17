@@ -1,0 +1,7 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - textbox "email" [ref=e3]
+    - textbox "password" [ref=e4]
+    - button "Log in" [ref=e5]
+  - button "Open Next.js Dev Tools" [ref=e11] [cursor=pointer]:
+    - img [ref=e12]
