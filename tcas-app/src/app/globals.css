@@ -1,51 +1,123 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* paper & ink palette */
+  --color-paper:    #FBFAF6;
+  --color-panel:    #F3EFE6;
+  --color-ruled:    #E7E1D4;
+  --color-ink:      #18223B;
+  --color-ink-soft: #5C6479;
+  --color-pen:      #2F5BFF;
+  --color-pen-deep: #1E40AF;
+  --color-mark:     #FFDC4A;
+  --color-correct:  #16A34A;
+  --color-graphite: #C7C0B0;
+
+  --font-sans: var(--font-bai), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   html {
-    color-scheme: dark;
+    scroll-behavior: smooth;
   }
+
+  body {
+    background-color: #FBFAF6;
+    color: #18223B;
+    font-family: var(--font-bai), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* ─── Ruled-paper background ───────────────────────── */
+
+.paper-ruled {
+  background-color: #FBFAF6;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 37px,
+    #ECE6D8 37px,
+    #ECE6D8 38px
+  );
+  background-position: 0 8px;
+}
+
+/* ─── Highlighter marker (signature) ───────────────── */
+
+.mark {
+  position: relative;
+  white-space: nowrap;
+  z-index: 0;
+}
+.mark::before {
+  content: "";
+  position: absolute;
+  left: -0.12em;
+  right: -0.12em;
+  bottom: 0.08em;
+  height: 0.62em;
+  background: var(--color-mark);
+  border-radius: 3px 6px 4px 7px;
+  z-index: -1;
+  transform-origin: left center;
+  animation: marker-sweep 0.7s cubic-bezier(0.7, 0, 0.3, 1) 0.55s both;
+}
+
+@keyframes marker-sweep {
+  from { transform: rotate(-1.2deg) scaleX(0); }
+  to   { transform: rotate(-1.2deg) scaleX(1); }
+}
+
+/* ─── OMR bubble fill loop (hero card) ─────────────── */
+
+.bubble-filling {
+  animation: bubble-fill 4.5s ease-in-out infinite;
+}
+
+@keyframes bubble-fill {
+  0%, 22%   { background-color: transparent; color: var(--color-graphite); border-color: var(--color-graphite); }
+  38%, 82%  { background-color: var(--color-pen); color: #fff; border-color: var(--color-pen); }
+  96%, 100% { background-color: transparent; color: var(--color-graphite); border-color: var(--color-graphite); }
+}
+
+/* ─── Entrance + ambient motion ────────────────────── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translateY(0) rotate(1.4deg); }
+  50%      { transform: translateY(-10px) rotate(0.6deg); }
+}
+
+.fade-up   { animation: fade-up 0.6s ease-out both; }
+.delay-100 { animation-delay: 0.10s; }
+.delay-200 { animation-delay: 0.20s; }
+.delay-300 { animation-delay: 0.30s; }
+.delay-400 { animation-delay: 0.40s; }
+
+.drift { animation: drift 8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .mark::before { transform: rotate(-1.2deg) scaleX(1); }
 }

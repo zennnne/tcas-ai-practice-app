@@ -1,0 +1,9 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - heading "Mock Exam" [level=1] [ref=e3]
+    - generic [ref=e4]:
+      - generic [ref=e5]: คณะเป้าหมาย (ไม่บังคับ)
+      - textbox "เช่น วิศวะ จุฬา" [ref=e6]
+    - button "เริ่มสอบ (10 ข้อ)" [ref=e7]
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]

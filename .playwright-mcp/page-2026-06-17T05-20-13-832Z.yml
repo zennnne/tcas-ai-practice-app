@@ -1,0 +1,6 @@
+- main [ref=e2]:
+  - heading "โหมดสังคม" [level=1] [ref=e3]
+  - button "สร้างห้องใหม่" [ref=e4]
+  - generic [ref=e5]:
+    - textbox "รหัสห้อง 6 หลัก" [ref=e6]
+    - button "เข้าร่วม" [ref=e7]

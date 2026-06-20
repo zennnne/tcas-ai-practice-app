@@ -1,0 +1,13 @@
+- main [ref=e2]:
+  - heading "อัปเกรด" [level=1] [ref=e3]
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Tier 1" [level=2] [ref=e6]
+      - paragraph [ref=e7]: คณิต + ฟิสิกส์
+      - paragraph [ref=e8]: 99 บาท/เดือน
+      - button "สมัครตอนนี้" [ref=e9]
+    - generic [ref=e10]:
+      - heading "Tier 2" [level=2] [ref=e11]
+      - paragraph [ref=e12]: ครบทุกวิชา
+      - paragraph [ref=e13]: 249 บาท/เดือน
+      - button "สมัครตอนนี้" [ref=e14]
