@@ -1,6 +1,6 @@
 import { createHmac } from 'crypto'
 import { describe, it, expect } from 'vitest'
-import { parseChargeComplete, verifySignature } from '@/app/api/webhooks/omise/route'
+import { parseChargeComplete, verifySignature } from '@/lib/billing/webhook'
 
 describe('parseChargeComplete', () => {
   it('successful charge → upgrade (user_id, tier, paid)', () => {
