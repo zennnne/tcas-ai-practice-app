@@ -57,8 +57,6 @@ export default async function PracticePage() {
     <main>
       <QuestionCard
         questionId={question.id}
-        subject={DEFAULT_SUBJECT}
-        topic={DEFAULT_TOPIC}
         q={body.q}
         choices={body.choices}
         answer={body.answer}

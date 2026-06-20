@@ -2,16 +2,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { genRoomCode, selectQuestionSet, skillRange, type PoolQ } from '@/lib/social/room'
 import { featuresFor } from '@/lib/billing/gating'
+import { recordAttempt } from '@/lib/attempts/record'
 
 export async function createRoom(input: {
   subject: string; topic: string; count: number; timerSec: number; mode: 'wait-all' | 'first-come'
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'unauthorized' }
+  if (!user) return { ok: false as const, error: 'unauthorized' }
 
   const { data: sub } = await supabase.from('subscriptions').select('status,tier').eq('user_id', user.id).single()
-  if (!featuresFor(sub!).social) return { error: 'social ไม่พร้อมใช้ (อัปเกรดเพื่อเล่นกับเพื่อน)' }
+  if (!featuresFor(sub!).social) return { ok: false as const, error: 'social ไม่พร้อมใช้ (อัปเกรดเพื่อเล่นกับเพื่อน)' }
 
   const { data: tier } = await supabase.from('skill_tier')
     .select('tier').eq('user_id', user.id).eq('subject', input.subject).eq('topic', input.topic).single()
@@ -28,26 +29,26 @@ export async function createRoom(input: {
     settings: { topic: input.topic, count: input.count, timerSec: input.timerSec, mode: input.mode },
     question_ids: set.map((q) => q.id),
   }).select().single()
-  if (error) return { error: error.message }
-  return { ok: true, code: room.code }
+  if (error) return { ok: false as const, error: error.message }
+  return { ok: true as const, code: room.code }
 }
 
 export async function joinRoom(code: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'unauthorized' }
+  if (!user) return { ok: false as const, error: 'unauthorized' }
 
   const { data: sub } = await supabase.from('subscriptions').select('status,tier').eq('user_id', user.id).single()
-  if (!featuresFor(sub!).social) return { error: 'social ไม่พร้อมใช้' }
+  if (!featuresFor(sub!).social) return { ok: false as const, error: 'social ไม่พร้อมใช้' }
 
   const { data: tok } = await supabase.from('tokens').select('social_balance').eq('user_id', user.id).single()
-  if ((tok?.social_balance ?? 0) < 1) return { error: 'social token ไม่พอ' }
+  if ((tok?.social_balance ?? 0) < 1) return { ok: false as const, error: 'social token ไม่พอ' }
   await supabase.from('tokens').update({ social_balance: tok!.social_balance - 1 }).eq('user_id', user.id)
 
   const { data: room } = await supabase.from('rooms').select('id').eq('code', code).single()
-  if (!room) return { error: 'ไม่พบห้อง' }
+  if (!room) return { ok: false as const, error: 'ไม่พบห้อง' }
   await supabase.from('room_participants').insert({ room_id: room.id, user_id: user.id })
-  return { ok: true }
+  return { ok: true as const }
 }
 
 export async function submitSocialAnswer(input: {
@@ -64,10 +65,15 @@ export async function submitSocialAnswer(input: {
     .eq('user_id', user.id).eq('question_id', input.questionId).gte('created_at', since)
   const countInCalibration = (count ?? 0) === 0
 
-  await supabase.from('user_attempts').insert({
-    user_id: user.id, question_id: input.questionId,
-    correct: input.correct, time_spent_ms: input.timeMs,
-    context: 'social', count_in_calibration: countInCalibration,
+  // clean attempt → ขยับ true rank + question difficulty ด้วย (W5: repeat-exposure ไม่นับ) · social ไม่ lock
+  await recordAttempt(supabase, {
+    userId: user.id,
+    questionId: input.questionId,
+    correct: input.correct,
+    timeMs: input.timeMs,
+    context: 'social',
+    countInCalibration,
+    applyLock: false,
   })
   return { ok: true, counted: countInCalibration }
 }

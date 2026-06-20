@@ -14,7 +14,7 @@ export default function SocialLobbyPage() {
     setError('')
     const res = await createRoom({ subject: 'math', topic: 'algebra', count: 10, timerSec: 30, mode: 'wait-all' })
     setLoading(false)
-    if ('error' in res) { setError(res.error); return }
+    if (!res.ok) { setError(res.error); return }
     router.push(`/social/room/${res.code}`)
   }
 
@@ -24,7 +24,7 @@ export default function SocialLobbyPage() {
     setError('')
     const res = await joinRoom(joinCode.trim().toUpperCase())
     setLoading(false)
-    if ('error' in res) { setError(res.error); return }
+    if (!res.ok) { setError(res.error); return }
     router.push(`/social/room/${joinCode.trim().toUpperCase()}`)
   }
 

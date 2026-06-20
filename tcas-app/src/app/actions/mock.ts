@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { featuresFor } from '@/lib/billing/gating'
 import { assembleMock } from '@/lib/mock/assembly'
 import { scoreMock, admitChance, weakTopics } from '@/lib/mock/scoring'
+import { recordMockBatch } from '@/lib/attempts/record'
 
 export async function setGoal(targetFaculty: string) {
   const supabase = await createClient()
@@ -17,14 +18,14 @@ export async function setGoal(targetFaculty: string) {
 export async function startMock(subject: string, count: number) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'unauthorized' }
+  if (!user) return { ok: false as const, error: 'unauthorized' }
   const { data: sub } = await supabase.from('subscriptions').select('status,tier').eq('user_id', user.id).single()
-  if (!featuresFor(sub!).mock) return { error: 'mock เฉพาะสมาชิก (อัปเกรด)' }
+  if (!featuresFor(sub!).mock) return { ok: false as const, error: 'mock เฉพาะสมาชิก (อัปเกรด)' }
 
   const { data: pool } = await supabase.from('questions')
     .select('id, topic, mock_eligible').eq('subject', subject).eq('mock_eligible', true).eq('status', 'active')
   const set = assembleMock((pool ?? []).map((q) => ({ ...q, mock_eligible: true })), count)
-  return { ok: true, questionIds: set.map((q) => q.id) }
+  return { ok: true as const, questionIds: set.map((q) => q.id) }
 }
 
 export async function submitMock(input: {
@@ -32,7 +33,7 @@ export async function submitMock(input: {
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'unauthorized' }
+  if (!user) return { ok: false as const, error: 'unauthorized' }
 
   const score = scoreMock(input.answers)
   const weak = weakTopics(input.answers, 0.5)
@@ -46,12 +47,10 @@ export async function submitMock(input: {
     if (cutoff) chance = admitChance(score, cutoff)
   }
 
-  // บันทึก attempts (context=mock) + ขยับ true_rank น้ำหนักสูง (mock = ตัวขยับหลัก §5.2)
-  for (const a of input.answers) {
-    await supabase.from('user_attempts').insert({
-      user_id: user.id, question_id: a.questionId, correct: a.correct,
-      context: 'mock', count_in_calibration: true,
-    })
-  }
-  return { ok: true, score, weakTopics: weak, admitChance: chance }
+  // บันทึก attempts + ขยับ true_rank (mock = ตัวขยับหลัก §5.2) — batch 1 rating period/topic, ไม่มี N+1
+  await recordMockBatch(supabase, {
+    userId: user.id,
+    answers: input.answers.map((a) => ({ questionId: a.questionId, correct: a.correct })),
+  })
+  return { ok: true as const, score, weakTopics: weak, admitChance: chance }
 }

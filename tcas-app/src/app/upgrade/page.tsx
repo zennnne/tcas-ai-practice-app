@@ -38,7 +38,7 @@ export default function UpgradePage() {
       currency: 'THB',
       onCreateTokenSuccess: async (token: string) => {
         const result = await startCheckout(tier, token)
-        if ('error' in result) {
+        if (!result.ok) {
           setError(result.error)
           setLoading(null)
           return

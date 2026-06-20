@@ -5,14 +5,12 @@ import { submitAnswer } from '@/app/actions/practice'
 
 interface Props {
   questionId: string
-  subject: string
-  topic: string
   q: string
   choices: string[]
   answer: string
 }
 
-export function QuestionCard({ questionId, subject, topic, q, choices, answer }: Props) {
+export function QuestionCard({ questionId, q, choices, answer }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [correct, setCorrect] = useState<boolean | null>(null)
   const startMs = useRef(Date.now())
@@ -24,7 +22,7 @@ export function QuestionCard({ questionId, subject, topic, q, choices, answer }:
     const isCorrect = choice === answer
     setCorrect(isCorrect)
     await submitAnswer({
-      questionId, subject, topic,
+      questionId,
       correct: isCorrect,
       timeMs: Date.now() - startMs.current,
     })

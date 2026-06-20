@@ -23,7 +23,7 @@ export default function MockPage() {
     setError('')
     if (faculty.trim()) await setGoal(faculty.trim())
     const res = await startMock(subject, 10)
-    if ('error' in res) { setError(res.error); setLoading(false); return }
+    if (!res.ok) { setError(res.error); setLoading(false); return }
     // ดึงเนื้อหาโจทย์ด้วย browser client
     const supabase = createClient()
     const { data } = await supabase
@@ -54,7 +54,7 @@ export default function MockPage() {
     setLoading(true)
     const res = await submitMock({ subject, answers: finalAnswers })
     setLoading(false)
-    if ('error' in res) { setError(res.error); return }
+    if (!res.ok) { setError(res.error); return }
     setResult({ score: res.score, admitChance: res.admitChance ?? null, weakTopics: res.weakTopics })
     setPhase('result')
   }
