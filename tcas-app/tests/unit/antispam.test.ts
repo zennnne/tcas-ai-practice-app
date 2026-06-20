@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { validateReport, REPORT_CATEGORIES, type ReportContext } from '@/lib/quality/antispam'
+import { validateReport, REPORT_CATEGORIES, DAILY_REPORT_LIMIT, type ReportContext } from '@/lib/quality/antispam'
 
-const ctx: ReportContext = { todayReportCount: 2, dailyLimit: 10, alreadyReported: false }
+const ctx: ReportContext = { todayReportCount: 2, alreadyReported: false }
 
 describe('validateReport', () => {
   it('ต้องมี category ที่ถูกต้อง', () => {
@@ -10,7 +10,7 @@ describe('validateReport', () => {
     expect(validateReport('', ctx).ok).toBe(false)
   })
   it('rate-limit: เกิน daily limit → ปฏิเสธ', () => {
-    expect(validateReport('wrong_answer', { ...ctx, todayReportCount: 10 }).ok).toBe(false)
+    expect(validateReport('wrong_answer', { ...ctx, todayReportCount: DAILY_REPORT_LIMIT }).ok).toBe(false)
   })
   it('กด report ข้อเดิมซ้ำ → ปฏิเสธ', () => {
     expect(validateReport('wrong_answer', { ...ctx, alreadyReported: true }).ok).toBe(false)

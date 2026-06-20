@@ -15,6 +15,10 @@ create table user_reputation (
 
 -- recompute job: คำนวณ confidence ใหม่ต่อโจทย์ → apply action
 -- (สะท้อน recomputeConfidence + routeQuestion; รันเป็นรอบ เช่น ทุก 15 นาที)
+-- ⚠️ constants ด้านล่างต้องตรงกับ TS เสมอ — แก้ต้องแก้คู่กัน:
+--   penalty ×8, ratingAdj ±5  → src/lib/quality/confidence.ts (recomputeConfidence)
+--   floor < 50                 → src/lib/quality/confidence.ts (CONFIDENCE_FLOOR)
+--   mock trigger < 90          → src/lib/quality/routing.ts (MOCK_REVIEW_TRIGGER)
 create or replace function recompute_quality() returns void language plpgsql as $$
 declare q record; new_conf double precision; w_reports double precision;
         good_ct int; bad_ct int;
