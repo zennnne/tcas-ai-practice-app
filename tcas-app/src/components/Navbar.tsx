@@ -63,7 +63,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/signup"
-            className="text-sm bg-pen text-paper font-semibold px-5 py-2.5 rounded-full hover:bg-pen-deep transition-colors"
+            className="text-sm px-5 py-2.5 btn-pen"
           >
             เริ่มฟรี
           </Link>
@@ -104,7 +104,7 @@ export default function Navbar() {
             <Link
               href="/signup"
               onClick={() => setMobileOpen(false)}
-              className="text-center text-sm bg-pen text-paper font-semibold rounded-full py-3 hover:bg-pen-deep transition-colors"
+              className="text-center text-sm py-3 btn-pen"
             >
               เริ่มฟรี
             </Link>

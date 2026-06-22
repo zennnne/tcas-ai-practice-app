@@ -2,8 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitAnswer } from '@/app/actions/practice'
-
-const CHOICE_LABELS = ['ก', 'ข', 'ค', 'ง', 'จ']
+import { AnswerChoices } from '@/components/AnswerChoices'
 
 interface Props {
   questionId: string
@@ -28,7 +27,6 @@ export function QuestionCard({ questionId, q, choices, answer }: Props) {
     setSelected(choice)
     const isCorrect = choice === answer
     setCorrect(isCorrect)
-    // eslint-disable-next-line react-hooks/purity -- event handler, runs on click not during render
     await submitAnswer({ questionId, correct: isCorrect, timeMs: Date.now() - startMs.current })
   }
 
@@ -44,49 +42,7 @@ export function QuestionCard({ questionId, q, choices, answer }: Props) {
       </p>
 
       {/* Choices */}
-      <div data-testid="choices" className="flex flex-col gap-3">
-        {choices.map((c, i) => {
-          const label = CHOICE_LABELS[i] ?? String(i + 1)
-          const isSelected = c === selected
-          const isAnswer = c === answer
-          const revealed = selected !== null
-
-          let wrapClass = 'border-ruled text-ink hover:border-pen hover:bg-panel/40 cursor-pointer'
-          let bubbleClass = 'border-current text-current'
-          if (revealed) {
-            if (isAnswer) {
-              wrapClass = 'border-correct bg-correct/10 text-ink cursor-default'
-              bubbleClass = 'border-correct bg-correct text-white'
-            } else if (isSelected) {
-              wrapClass = 'border-red-400 bg-red-50 text-red-700 cursor-default'
-              bubbleClass = 'border-red-400 bg-red-400 text-white'
-            } else {
-              wrapClass = 'border-ruled text-graphite cursor-default opacity-60'
-              bubbleClass = 'border-current text-current'
-            }
-          }
-
-          return (
-            <button
-              key={c}
-              data-choice={c}
-              onClick={() => handleChoice(c)}
-              disabled={!!selected}
-              className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-xl border-2 text-left transition-all duration-150 ${wrapClass}`}
-            >
-              <span className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center font-mono text-xs font-bold transition-colors ${bubbleClass}`}>
-                {label}
-              </span>
-              <span className="text-sm leading-snug flex-1">{c}</span>
-              {revealed && isAnswer && (
-                <svg className="flex-shrink-0 text-correct" width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </button>
-          )
-        })}
-      </div>
+      <AnswerChoices choices={choices} answer={answer} selected={selected} onSelect={handleChoice} />
 
       {/* Feedback + Next */}
       {selected && (
@@ -96,7 +52,7 @@ export function QuestionCard({ questionId, q, choices, answer }: Props) {
           </p>
           <button
             onClick={handleNext}
-            className="inline-flex items-center gap-1.5 bg-pen text-paper text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-pen-deep transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm btn-pen"
           >
             ข้อต่อไป
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>

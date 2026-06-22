@@ -52,7 +52,7 @@ export default function SocialLobbyPage() {
               <button
                 onClick={handleCreate}
                 disabled={loading !== null}
-                className="mt-auto flex items-center justify-center gap-2 bg-pen text-paper font-semibold py-3.5 rounded-full hover:bg-pen-deep transition-colors disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+                className="mt-auto flex items-center justify-center gap-2 py-3.5 btn-pen"
               >
                 {loading === 'create' ? 'กำลังสร้างห้อง…' : 'สร้างห้องใหม่'}
               </button>

@@ -49,7 +49,7 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@example.com"
-                className="bg-transparent border-b-2 border-ruled focus:border-pen outline-none py-2.5 text-ink placeholder:text-graphite transition-colors"
+                className="field-line"
               />
             </div>
 
@@ -63,7 +63,7 @@ export default function SignupPage() {
                 onChange={(e) => setPw(e.target.value)}
                 required
                 placeholder="อย่างน้อย 8 ตัวอักษร"
-                className="bg-transparent border-b-2 border-ruled focus:border-pen outline-none py-2.5 text-ink placeholder:text-graphite transition-colors"
+                className="field-line"
               />
             </div>
 
@@ -72,7 +72,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 bg-pen text-paper font-semibold py-3.5 rounded-full hover:bg-pen-deep transition-colors disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+              className="mt-1 py-3.5 btn-pen"
             >
               {loading ? 'กำลังสมัคร…' : 'สมัครฟรีวันนี้'}
             </button>

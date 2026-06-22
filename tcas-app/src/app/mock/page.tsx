@@ -3,12 +3,11 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { setGoal, startMock, submitMock } from '@/app/actions/mock'
 import Navbar from '@/components/Navbar'
+import { AnswerChoices } from '@/components/AnswerChoices'
 
 type Phase = 'setup' | 'exam' | 'result'
 type Question = { id: string; topic: string; body: { q: string; choices: string[]; answer: string } }
 type Answer = { topic: string; questionId: string; correct: boolean }
-
-const CHOICE_LABELS = ['ก', 'ข', 'ค', 'ง', 'จ']
 
 function Arrow() {
   return (
@@ -107,7 +106,7 @@ export default function MockPage() {
                   value={faculty}
                   onChange={(e) => setFaculty(e.target.value)}
                   placeholder="เช่น วิศวะ จุฬา"
-                  className="bg-transparent border-b-2 border-ruled focus:border-pen outline-none py-2.5 text-ink placeholder:text-graphite transition-colors"
+                  className="field-line"
                 />
               </div>
 
@@ -116,7 +115,7 @@ export default function MockPage() {
               <button
                 onClick={handleStart}
                 disabled={loading}
-                className="flex items-center justify-center gap-2 bg-pen text-paper font-semibold py-3.5 rounded-full hover:bg-pen-deep transition-colors disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+                className="flex items-center justify-center gap-2 py-3.5 btn-pen"
               >
                 {loading ? 'กำลังโหลดโจทย์…' : <>เริ่มสอบ <Arrow /></>}
               </button>
@@ -170,43 +169,12 @@ export default function MockPage() {
             <div className="bg-paper border border-ruled rounded-2xl shadow-sm p-6 sm:p-8">
               <p className="text-base sm:text-lg text-ink leading-relaxed mb-8">{q.body.q}</p>
 
-              <div className="flex flex-col gap-3">
-                {q.body.choices.map((c, i) => {
-                  const label = CHOICE_LABELS[i] ?? String(i + 1)
-                  const isSelected = c === selectedChoice
-                  const isAnswer = c === q.body.answer
-                  const revealed = selectedChoice !== null
-
-                  let wrapClass = 'border-ruled text-ink hover:border-pen hover:bg-panel/40 cursor-pointer'
-                  let bubbleClass = 'border-current text-current'
-                  if (revealed) {
-                    if (isAnswer) {
-                      wrapClass = 'border-correct bg-correct/10 text-ink cursor-default'
-                      bubbleClass = 'border-correct bg-correct text-white'
-                    } else if (isSelected) {
-                      wrapClass = 'border-red-400 bg-red-50 text-red-700 cursor-default'
-                      bubbleClass = 'border-red-400 bg-red-400 text-white'
-                    } else {
-                      wrapClass = 'border-ruled text-graphite cursor-default opacity-50'
-                      bubbleClass = 'border-current text-current'
-                    }
-                  }
-
-                  return (
-                    <button
-                      key={c}
-                      onClick={() => handleAnswer(c)}
-                      disabled={!!selectedChoice}
-                      className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-xl border-2 text-left transition-all duration-150 ${wrapClass}`}
-                    >
-                      <span className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center font-mono text-xs font-bold transition-colors ${bubbleClass}`}>
-                        {label}
-                      </span>
-                      <span className="text-sm leading-snug flex-1">{c}</span>
-                    </button>
-                  )
-                })}
-              </div>
+              <AnswerChoices
+                choices={q.body.choices}
+                answer={q.body.answer}
+                selected={selectedChoice}
+                onSelect={handleAnswer}
+              />
             </div>
 
             {error && <p className="mt-4 text-sm text-red-500 text-center">{error}</p>}

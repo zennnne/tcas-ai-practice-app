@@ -75,7 +75,7 @@ export default function Home() {
               <div className="fade-up delay-400 flex flex-wrap items-center gap-4 pt-1">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 bg-pen text-paper font-semibold px-7 py-3.5 rounded-full text-base hover:bg-pen-deep transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 text-base btn-pen"
                 >
                   เริ่มฝึกฟรีวันนี้
                   <Arrow />
@@ -171,7 +171,7 @@ export default function Home() {
           </p>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-pen text-paper font-semibold px-10 py-4 rounded-full text-lg hover:bg-pen-deep transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+            className="inline-flex items-center gap-2 px-10 py-4 text-lg btn-pen"
           >
             เริ่มฝึกฟรีวันนี้
             <Arrow size={18} />

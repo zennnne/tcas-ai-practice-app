@@ -38,6 +38,23 @@
   }
 }
 
+/* ─── Reusable primitives ──────────────────────────── */
+
+@layer components {
+  /* Primary "pen" CTA — เติม padding/size ที่จุดใช้งานเอง */
+  .btn-pen {
+    @apply bg-pen text-paper font-semibold rounded-full transition-colors;
+    @apply hover:bg-pen-deep disabled:opacity-50;
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen;
+  }
+
+  /* Underline text field */
+  .field-line {
+    @apply bg-transparent border-b-2 border-ruled py-2.5 text-ink transition-colors;
+    @apply outline-none placeholder:text-graphite focus:border-pen;
+  }
+}
+
 /* ─── Ruled-paper background ───────────────────────── */
 
 .paper-ruled {

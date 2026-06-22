@@ -4,7 +4,7 @@ test('user can sign up and reach practice', async ({ page }) => {
   await page.goto('/signup')
   await page.getByLabel('email').fill(`u-${Date.now()}@test.local`)
   await page.getByLabel('password').fill('test123456')
-  await page.getByRole('button', { name: 'Sign up' }).click()
+  await page.getByRole('button', { name: 'สมัครฟรีวันนี้' }).click()
   await expect(page).toHaveURL(/\/practice/)
 })
 
@@ -14,7 +14,7 @@ test('answering a question records attempt and shows result', async ({ page }) =
   await page.goto('/signup')
   await page.getByLabel('email').fill(`u-${Date.now()}@test.local`)
   await page.getByLabel('password').fill('test123456')
-  await page.getByRole('button', { name: 'Sign up' }).click()
+  await page.getByRole('button', { name: 'สมัครฟรีวันนี้' }).click()
   await expect(page).toHaveURL(/\/practice/)
 
   // ถ้ามีโจทย์ใน DB → เลือกคำตอบแรก → ยืนยัน result แสดง

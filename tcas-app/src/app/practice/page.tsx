@@ -66,7 +66,7 @@ export default async function PracticePage() {
               </p>
               <Link
                 href="/upgrade"
-                className="inline-flex items-center gap-2 bg-pen text-paper font-semibold px-7 py-3 rounded-full hover:bg-pen-deep transition-colors text-sm"
+                className="inline-flex items-center gap-2 px-7 py-3 text-sm btn-pen"
               >
                 ดูแพ็กเกจ →
               </Link>
