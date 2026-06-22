@@ -2,10 +2,21 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { setGoal, startMock, submitMock } from '@/app/actions/mock'
+import Navbar from '@/components/Navbar'
 
 type Phase = 'setup' | 'exam' | 'result'
 type Question = { id: string; topic: string; body: { q: string; choices: string[]; answer: string } }
 type Answer = { topic: string; questionId: string; correct: boolean }
+
+const CHOICE_LABELS = ['ก', 'ข', 'ค', 'ง', 'จ']
+
+function Arrow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
 
 export default function MockPage() {
   const [phase, setPhase] = useState<Phase>('setup')
@@ -14,6 +25,7 @@ export default function MockPage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState<Answer[]>([])
+  const [selectedChoice, setSelectedChoice] = useState<string | null>(null)
   const [result, setResult] = useState<{ score: number; admitChance: string | null; weakTopics: string[] } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -24,7 +36,6 @@ export default function MockPage() {
     if (faculty.trim()) await setGoal(faculty.trim())
     const res = await startMock(subject, 10)
     if (!res.ok) { setError(res.error); setLoading(false); return }
-    // ดึงเนื้อหาโจทย์ด้วย browser client
     const supabase = createClient()
     const { data } = await supabase
       .from('questions')
@@ -34,20 +45,26 @@ export default function MockPage() {
     setQuestions(data as Question[])
     setCurrent(0)
     setAnswers([])
+    setSelectedChoice(null)
     setPhase('exam')
     setLoading(false)
   }
 
   function handleAnswer(choice: string) {
+    if (selectedChoice) return
+    setSelectedChoice(choice)
     const q = questions[current]
     const correct = choice === q.body.answer
     const newAnswers = [...answers, { topic: q.topic, questionId: q.id, correct }]
-    if (current + 1 < questions.length) {
-      setAnswers(newAnswers)
-      setCurrent(current + 1)
-    } else {
-      handleSubmit(newAnswers)
-    }
+    setTimeout(() => {
+      if (current + 1 < questions.length) {
+        setAnswers(newAnswers)
+        setCurrent(current + 1)
+        setSelectedChoice(null)
+      } else {
+        handleSubmit(newAnswers)
+      }
+    }, 700)
   }
 
   async function handleSubmit(finalAnswers: Answer[]) {
@@ -59,74 +76,205 @@ export default function MockPage() {
     setPhase('result')
   }
 
+  function handleRetry() {
+    setPhase('setup')
+    setResult(null)
+    setAnswers([])
+    setSelectedChoice(null)
+    setCurrent(0)
+  }
+
+  // ── Setup ──────────────────────────────────────────────────────
   if (phase === 'setup') {
     return (
-      <main className="flex flex-col items-center gap-6 p-8 max-w-xl mx-auto">
-        <h1 className="text-2xl font-bold">Mock Exam</h1>
-        <div className="w-full flex flex-col gap-2">
-          <label className="font-medium">คณะเป้าหมาย (ไม่บังคับ)</label>
-          <input
-            value={faculty} onChange={(e) => setFaculty(e.target.value)}
-            placeholder="เช่น วิศวะ จุฬา"
-            className="border rounded px-3 py-2"
-          />
-        </div>
-        <button
-          onClick={handleStart} disabled={loading}
-          className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold disabled:opacity-50"
-        >
-          {loading ? 'กำลังโหลด...' : 'เริ่มสอบ (10 ข้อ)'}
-        </button>
-        {error && <p className="text-red-500">{error}</p>}
-      </main>
+      <>
+        <Navbar />
+        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+          <div className="w-full max-w-sm">
+            <div className="mb-8">
+              <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">จำลองสนามจริง</p>
+              <h1 className="text-3xl font-bold text-ink leading-tight">Mock Exam</h1>
+              <p className="mt-2 text-sm text-ink-soft">10 ข้อ · คณิตศาสตร์ · AI วิเคราะห์จุดอ่อน</p>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="faculty" className="text-sm font-medium text-ink-soft">
+                  คณะเป้าหมาย <span className="text-graphite">(ไม่บังคับ)</span>
+                </label>
+                <input
+                  id="faculty"
+                  value={faculty}
+                  onChange={(e) => setFaculty(e.target.value)}
+                  placeholder="เช่น วิศวะ จุฬา"
+                  className="bg-transparent border-b-2 border-ruled focus:border-pen outline-none py-2.5 text-ink placeholder:text-graphite transition-colors"
+                />
+              </div>
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
+              <button
+                onClick={handleStart}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 bg-pen text-paper font-semibold py-3.5 rounded-full hover:bg-pen-deep transition-colors disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
+              >
+                {loading ? 'กำลังโหลดโจทย์…' : <>เริ่มสอบ <Arrow /></>}
+              </button>
+            </div>
+          </div>
+        </main>
+      </>
     )
   }
 
+  // ── Exam ───────────────────────────────────────────────────────
   if (phase === 'exam') {
     const q = questions[current]
+    const progress = ((current) / questions.length) * 100
+
     return (
-      <main className="flex flex-col items-center gap-6 p-8 max-w-xl mx-auto">
-        <p className="text-sm text-gray-500">ข้อ {current + 1} / {questions.length}</p>
-        <p className="text-lg font-medium text-center">{q.body.q}</p>
-        <div className="flex flex-col gap-3 w-full">
-          {q.body.choices.map((c, i) => (
-            <button
-              key={i} onClick={() => handleAnswer(c)} disabled={loading}
-              className="px-4 py-3 border rounded-lg text-left hover:bg-gray-50 disabled:opacity-50"
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-        {error && <p className="text-red-500">{error}</p>}
-      </main>
+      <>
+        <Navbar />
+        <main className="min-h-dvh bg-paper pt-20 pb-16 px-4">
+          {/* Progress bar */}
+          <div className="fixed top-16 inset-x-0 h-1 bg-ruled z-40" aria-hidden>
+            <div
+              className="h-full bg-pen transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            {/* Counter */}
+            <div className="flex items-center justify-between mb-6 mt-4">
+              <span className="font-mono text-xs text-ink-soft tracking-wider uppercase">
+                ข้อ {current + 1} / {questions.length}
+              </span>
+              <div className="flex gap-1">
+                {questions.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      i < current
+                        ? 'bg-correct'
+                        : i === current
+                          ? 'bg-pen'
+                          : 'bg-ruled'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Question card */}
+            <div className="bg-paper border border-ruled rounded-2xl shadow-sm p-6 sm:p-8">
+              <p className="text-base sm:text-lg text-ink leading-relaxed mb-8">{q.body.q}</p>
+
+              <div className="flex flex-col gap-3">
+                {q.body.choices.map((c, i) => {
+                  const label = CHOICE_LABELS[i] ?? String(i + 1)
+                  const isSelected = c === selectedChoice
+                  const isAnswer = c === q.body.answer
+                  const revealed = selectedChoice !== null
+
+                  let wrapClass = 'border-ruled text-ink hover:border-pen hover:bg-panel/40 cursor-pointer'
+                  let bubbleClass = 'border-current text-current'
+                  if (revealed) {
+                    if (isAnswer) {
+                      wrapClass = 'border-correct bg-correct/10 text-ink cursor-default'
+                      bubbleClass = 'border-correct bg-correct text-white'
+                    } else if (isSelected) {
+                      wrapClass = 'border-red-400 bg-red-50 text-red-700 cursor-default'
+                      bubbleClass = 'border-red-400 bg-red-400 text-white'
+                    } else {
+                      wrapClass = 'border-ruled text-graphite cursor-default opacity-50'
+                      bubbleClass = 'border-current text-current'
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => handleAnswer(c)}
+                      disabled={!!selectedChoice}
+                      className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-xl border-2 text-left transition-all duration-150 ${wrapClass}`}
+                    >
+                      <span className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center font-mono text-xs font-bold transition-colors ${bubbleClass}`}>
+                        {label}
+                      </span>
+                      <span className="text-sm leading-snug flex-1">{c}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {error && <p className="mt-4 text-sm text-red-500 text-center">{error}</p>}
+          </div>
+        </main>
+      </>
     )
   }
 
-  // result phase
+  // ── Result ─────────────────────────────────────────────────────
+  const scoreVal = result?.score ?? 0
+  const pct = Math.round(scoreVal)
+  const scoreColor = pct >= 70 ? 'text-correct' : pct >= 50 ? 'text-pen' : 'text-red-500'
+
   return (
-    <main className="flex flex-col items-center gap-6 p-8 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold">ผลสอบ</h2>
-      <p className="text-4xl font-bold text-indigo-600">{result?.score.toFixed(0)}%</p>
-      {result?.admitChance && (
-        <p className="text-lg">โอกาสติด: <span className="font-semibold">{result.admitChance}</span></p>
-      )}
-      {result?.weakTopics.length ? (
-        <div className="w-full">
-          <p className="font-medium mb-2">หัวข้อที่ต้องทบทวน:</p>
-          <ul className="list-disc list-inside text-red-600">
-            {result.weakTopics.map((t) => <li key={t}>{t}</li>)}
-          </ul>
+    <>
+      <Navbar />
+      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="mb-6">
+            <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-1">ผลสอบ</p>
+            <h2 className="text-2xl font-bold text-ink">Mock Exam เสร็จแล้ว</h2>
+          </div>
+
+          {/* Score card */}
+          <div className="bg-panel/60 border border-ruled rounded-2xl p-8 mb-5 text-center">
+            <p className={`font-mono text-7xl font-bold tabular-nums leading-none ${scoreColor}`}>
+              {pct}%
+            </p>
+            <p className="mt-2 text-sm text-ink-soft">
+              ตอบถูก {answers.filter(a => a.correct).length} จาก {answers.length} ข้อ
+            </p>
+            {result?.admitChance && (
+              <p className="mt-4 text-base text-ink">
+                โอกาสติด: <span className="font-bold">{result.admitChance}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Weak topics */}
+          {result?.weakTopics.length ? (
+            <div className="bg-paper border border-ruled rounded-2xl p-6 mb-5">
+              <p className="text-sm font-semibold text-ink mb-3">หัวข้อที่ควรทบทวน</p>
+              <div className="flex flex-wrap gap-2">
+                {result.weakTopics.map((t) => (
+                  <span
+                    key={t}
+                    className="font-mono text-xs px-3 py-1.5 rounded-full bg-red-50 text-red-600 border border-red-200"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-correct/10 border border-correct/20 rounded-2xl p-5 mb-5 text-center">
+              <p className="text-sm font-semibold text-correct">ทำได้ดีทุก topic!</p>
+            </div>
+          )}
+
+          <button
+            onClick={handleRetry}
+            className="w-full py-3.5 rounded-full border-2 border-ruled text-ink font-semibold hover:border-ink-soft hover:bg-panel/40 transition-colors"
+          >
+            สอบอีกครั้ง
+          </button>
         </div>
-      ) : (
-        <p className="text-green-600">ทำได้ดีทุก topic!</p>
-      )}
-      <button
-        onClick={() => setPhase('setup')}
-        className="px-6 py-2 bg-gray-200 rounded-lg"
-      >
-        สอบอีกครั้ง
-      </button>
-    </main>
+      </main>
+    </>
   )
 }
