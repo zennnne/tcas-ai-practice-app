@@ -1,12 +1,11 @@
 'use server'
 import { omise, TIER_PRICE_SATANG } from '@/lib/billing/omise'
 import { withAuth } from '@/lib/auth/with-auth'
+import { isPaidSubscriber } from '@/lib/billing/subscription'
 
 export async function startCheckout(tier: 'tier1' | 'tier2', token: string) {
   return withAuth(null, async ({ userId, supabase }) => {
-    const { data: sub } = await supabase
-      .from('subscriptions').select('status').eq('user_id', userId).single()
-    if (sub?.status === 'paid') return { ok: false as const, error: 'already_subscribed' }
+    if (await isPaidSubscriber(supabase, userId)) return { ok: false as const, error: 'already_subscribed' }
 
     try {
       const charge = await omise.charges.create({

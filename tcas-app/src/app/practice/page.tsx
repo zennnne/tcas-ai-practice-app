@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { pickQuestion, rankToLevel } from '@/lib/practice/serving'
 import { canTriggerGen } from '@/lib/practice/free-pool'
-import type { Status } from '@/lib/billing/gating'
+import { getSubscription } from '@/lib/billing/subscription'
 import { QuestionCard } from './QuestionCard'
 import Navbar from '@/components/Navbar'
 
@@ -27,12 +27,7 @@ export default async function PracticePage() {
   if (!user) redirect('/login')
 
   // ดึง subscription status (กฎเหล็ก §3.1: free ห้าม trigger gen)
-  const { data: sub } = await supabase
-    .from('subscriptions')
-    .select('status')
-    .eq('user_id', user.id)
-    .single()
-  const subStatus = (sub?.status ?? 'free') as Status
+  const { status: subStatus } = await getSubscription(supabase, user.id)
 
   // ดึง user_ratings (lazy — อาจยังไม่มีถ้าเพิ่ง signup)
   const { data: ur } = await supabase
@@ -44,7 +39,7 @@ export default async function PracticePage() {
     .single()
 
   const level = rankToLevel(ur?.true_rank ?? 1500)
-  const question = await pickQuestion(user.id, DEFAULT_SUBJECT, DEFAULT_TOPIC, level)
+  const question = await pickQuestion(supabase, user.id, DEFAULT_SUBJECT, DEFAULT_TOPIC, level)
 
   const subjectLabel = SUBJECT_LABEL[DEFAULT_SUBJECT] ?? DEFAULT_SUBJECT
   const topicLabel = TOPIC_LABEL[DEFAULT_TOPIC] ?? DEFAULT_TOPIC

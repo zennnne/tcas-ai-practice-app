@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // true_rank (Glicko ~1500 center) → level 1-5
 export function rankToLevel(rank: number): number {
@@ -16,13 +16,12 @@ export function nextServingLevel(current: number, s: SessionState): number {
 
 // ดึงโจทย์ถัดไป: 2-step — fetch locked IDs ก่อน แล้วค่อย exclude
 // (PostgREST ไม่รัน subquery ใน .not('id','in',...))
+// db inject (เหมือน recordAttempt) → testable + compose client เดียวกับ caller ได้
 export async function pickQuestion(
-  userId: string, subject: string, topic: string, level: number
+  db: SupabaseClient, userId: string, subject: string, topic: string, level: number
 ) {
-  const supabase = await createClient()
-
   // step 1: หา locked question IDs สำหรับ user นี้
-  const { data: locks } = await supabase
+  const { data: locks } = await db
     .from('user_question_locks')
     .select('question_id')
     .eq('user_id', userId)
@@ -31,7 +30,7 @@ export async function pickQuestion(
   const lockedIds = (locks ?? []).map((l) => l.question_id)
 
   // step 2: ดึงโจทย์จาก pool ตัด locked
-  let query = supabase
+  let query = db
     .from('questions')
     .select('id, body, difficulty_value, rating_deviation, difficulty_frozen')
     .eq('subject', subject)

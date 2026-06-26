@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { featuresFor, type Features } from '@/lib/billing/gating'
+import { getSubscription } from '@/lib/billing/subscription'
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 export type AuthCtx = { userId: string; supabase: SupabaseClient }
@@ -21,9 +22,8 @@ export async function withAuth<T>(
   if (!user) return { ok: false as const, error: 'unauthorized' }
 
   if (feature !== null) {
-    const { data: sub } = await supabase
-      .from('subscriptions').select('status,tier').eq('user_id', user.id).single()
-    if (!featuresFor(sub!)[feature]) {
+    const sub = await getSubscription(supabase, user.id)
+    if (!featuresFor(sub)[feature]) {
       return { ok: false as const, error: FEATURE_DENIED[feature] }
     }
   }
