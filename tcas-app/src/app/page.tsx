@@ -1,5 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+
+export const metadata: Metadata = {
+  title: "TCAS AI — เตรียมสอบให้ตรงจุด",
+  description:
+    "AI วิเคราะห์จุดอ่อน สร้างโจทย์ตรงจุด และประเมินโอกาสติดคณะที่หวัง — ฝึกโจทย์ + Mock + โอกาสติดคณะ ครบในที่เดียว",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "TCAS AI — เตรียมสอบให้ตรงจุด",
+    description:
+      "AI วิเคราะห์จุดอ่อน สร้างโจทย์ตรงจุด และประเมินโอกาสติดคณะที่หวัง",
+    url: "/",
+    type: "website",
+  },
+  twitter: {
+    title: "TCAS AI — เตรียมสอบให้ตรงจุด",
+    description:
+      "AI วิเคราะห์จุดอ่อน สร้างโจทย์ตรงจุด และประเมินโอกาสติดคณะที่หวัง",
+  },
+};
 
 /* ─── Data ────────────────────────────────────────────────── */
 
