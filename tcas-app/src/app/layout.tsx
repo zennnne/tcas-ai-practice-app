@@ -16,10 +16,24 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tcas.ai";
+
 export const metadata: Metadata = {
-  title: "TCAS AI — เตรียมสอบให้ตรงจุด",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "TCAS AI — เตรียมสอบให้ตรงจุด",
+    template: "%s | TCAS AI",
+  },
   description:
     "AI วิเคราะห์จุดอ่อน สร้างโจทย์ที่ตรงจุด และประเมินโอกาสติดคณะที่หวัง",
+  openGraph: {
+    type: "website",
+    locale: "th_TH",
+    siteName: "TCAS AI",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

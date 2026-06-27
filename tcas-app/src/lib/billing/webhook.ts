@@ -4,8 +4,8 @@ export interface OmiseChargeData {
   status: string
   metadata?: { user_id?: string; tier?: string }
 }
-export interface OmiseEvent { key: string; data: OmiseChargeData }
-export interface UpgradeIntent { userId: string; tier: string; upgrade: boolean }
+export interface OmiseEvent { id?: string; key: string; data: OmiseChargeData }
+export interface UpgradeIntent { userId: string; tier: string; upgrade: boolean; eventId: string }
 
 export function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
   if (!signature || !secret) return false
@@ -21,6 +21,7 @@ export function parseChargeComplete(event: OmiseEvent): UpgradeIntent | null {
   const meta = event.data?.metadata ?? {}
   const userId = meta.user_id
   const tier = meta.tier
-  if (!userId || !tier) return null
-  return { userId, tier, upgrade: event.data?.status === 'successful' }
+  const eventId = event.id
+  if (!userId || !tier || !eventId) return null
+  return { userId, tier, upgrade: event.data?.status === 'successful', eventId }
 }
