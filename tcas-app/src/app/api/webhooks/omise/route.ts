@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifySignature, parseChargeComplete } from '@/lib/billing/webhook'
+import { captureMessage } from '@/lib/monitoring/capture'
 
 const VALID_TIERS = new Set(['tier1', 'tier2'])
 
@@ -25,6 +26,10 @@ export async function POST(req: Request) {
   if (dedupError) {
     if (dedupError.code === '23505') return new Response('ok', { status: 200 })
     console.error('webhook: dedup insert error', dedupError)
+    captureMessage('webhook: dedup insert failed', 'error', {
+      eventId: intent.eventId,
+      code: dedupError.code,
+    })
     return new Response('internal_error', { status: 500 })
   }
 
@@ -39,6 +44,10 @@ export async function POST(req: Request) {
     // Paid but no subscription row → rollback dedup so Omise can retry
     await db.from('processed_webhook_events').delete().eq('event_id', intent.eventId)
     console.error('webhook: no subscription row for user', intent.userId, 'event', intent.eventId)
+    captureMessage('webhook: paid but no subscription row', 'error', {
+      userId: intent.userId,
+      eventId: intent.eventId,
+    })
     return new Response('no_subscription_row', { status: 500 })
   }
 

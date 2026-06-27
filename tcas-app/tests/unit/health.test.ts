@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { handleHealth } from '@/app/api/health/route'
+import { handleHealth } from '@/lib/health/check'
 
 describe('GET /api/health', () => {
   it('healthy db → 200 + {status:"ok"}', async () => {
