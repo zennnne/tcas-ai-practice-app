@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { isRateLimited } from '@/lib/rate-limit/limiter'
 import { buildDefaultStore, type RateLimitStore } from '@/lib/rate-limit/store'
+import { validateConsent } from '@/lib/consent/consent'
 
 // ---------------------------------------------------------------------------
 // IP extraction helper (exported so it can be tested independently)
@@ -28,12 +29,22 @@ export async function checkIpRateLimit(
 }
 
 // ---------------------------------------------------------------------------
-// Server actions (minimal edit — only add rate-limit guard at top)
+// Server actions
 // ---------------------------------------------------------------------------
 
-export async function signup(email: string, password: string) {
+export async function signup(
+  email: string,
+  password: string,
+  consentGiven: boolean,
+  policyVersion: string,
+) {
+  // Per-IP rate limit (fail-closed) before any work
   const ip = getClientIP(await headers())
   if (await checkIpRateLimit(ip)) return { error: 'ลองใหม่อีกครั้งภายหลัง' }
+
+  // Validate consent before creating the user (PDPA requirement)
+  const consentCheck = validateConsent({ consentGiven, policyVersion })
+  if (!consentCheck.ok) return { error: consentCheck.error }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({ email, password })
@@ -44,6 +55,8 @@ export async function signup(email: string, password: string) {
     user_id: uid, status: 'trial',
     trial_ends_at: new Date(Date.now() + 7 * 864e5).toISOString(),
   })
+  // Record PDPA consent with the exact policy version accepted
+  await supabase.from('consents').insert({ user_id: uid, policy_version: policyVersion })
   return { ok: true }
 }
 
