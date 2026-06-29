@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifySignature, parseChargeComplete } from '@/lib/billing/webhook'
 import { captureMessage } from '@/lib/monitoring/capture'
+import { sendEmail } from '@/lib/email/send'
 
 const VALID_TIERS = new Set(['tier1', 'tier2'])
 
@@ -49,6 +50,23 @@ export async function POST(req: Request) {
       eventId: intent.eventId,
     })
     return new Response('no_subscription_row', { status: 500 })
+  }
+
+  // Receipt email — fire after successful activation, NOT on dedup skip
+  try {
+    const { data: authUser } = await db.auth.admin.getUserById(intent.userId)
+    const email = authUser?.user?.email
+    if (email) {
+      await sendEmail('receipt', email, {
+        tier: intent.tier,
+        date: new Date().toISOString().slice(0, 10),
+      })
+    }
+  } catch (err) {
+    captureMessage('webhook: receipt email lookup failed', 'warning', {
+      userId: intent.userId,
+      error: String(err),
+    })
   }
 
   return new Response('ok', { status: 200 })
