@@ -3,10 +3,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { signup } from '@/app/actions/auth'
 import { useRouter } from 'next/navigation'
+import { CURRENT_POLICY_VERSION } from '@/lib/consent/consent'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
+  const [consentGiven, setConsentGiven] = useState(false)
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -14,7 +16,7 @@ export default function SignupPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const r = await signup(email, pw)
+    const r = await signup(email, pw, consentGiven, CURRENT_POLICY_VERSION)
     setLoading(false)
     if (r.error) setErr(r.error)
     else router.push('/practice')
@@ -67,11 +69,34 @@ export default function SignupPage() {
               />
             </div>
 
+            {/* PDPA consent checkbox — Human TODO: replace placeholder links with real policy wording */}
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={consentGiven}
+                onChange={(e) => setConsentGiven(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-pen"
+                aria-required="true"
+              />
+              <span className="text-sm text-ink-soft leading-snug">
+                ฉันอ่านและยอมรับ{' '}
+                <Link href="/terms" target="_blank" className="text-pen underline hover:text-pen-deep">
+                  ข้อกำหนดการใช้งาน
+                </Link>{' '}
+                และ{' '}
+                <Link href="/privacy" target="_blank" className="text-pen underline hover:text-pen-deep">
+                  นโยบายความเป็นส่วนตัว
+                </Link>
+                {' '}(รวมถึงการเก็บและประมวลผลข้อมูลส่วนบุคคลตาม PDPA)
+                {/* Human TODO (parental consent): ผู้ที่อายุต่ำกว่า 20 ปีต้องได้รับความยินยอมจากผู้ปกครอง — กลไกนี้รอคำแนะนำกฎหมายก่อนสร้าง */}
+              </span>
+            </label>
+
             {err && <p role="alert" className="text-sm text-red-500 -mt-2">{err}</p>}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !consentGiven}
               className="mt-1 py-3.5 btn-pen"
             >
               {loading ? 'กำลังสมัคร…' : 'สมัครฟรีวันนี้'}

@@ -212,6 +212,8 @@ export default function Home() {
               { href: "/social",   label: "สนามสอบ" },
               { href: "/mock",     label: "Mock Test" },
               { href: "/upgrade",  label: "ราคา" },
+              { href: "/privacy",  label: "Privacy" },
+              { href: "/terms",    label: "Terms" },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="hover:text-ink transition-colors">
                 {label}
