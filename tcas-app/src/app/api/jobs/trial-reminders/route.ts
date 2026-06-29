@@ -42,7 +42,14 @@ export async function POST(req: Request) {
     await sendEmail('trial_reminder', row.email, { daysLeft })
 
     // Mark as sent so this user isn't reminded again on the next run
-    await db.rpc('mark_trial_reminder_sent', { p_user_id: row.user_id })
+    const { error: markError } = await db.rpc('mark_trial_reminder_sent', { p_user_id: row.user_id })
+    if (markError) {
+      captureMessage('trial-reminders: failed to mark sent', 'warning', {
+        userId: row.user_id,
+        error: markError.message,
+      })
+      continue
+    }
     sent++
   }
 

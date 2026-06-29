@@ -3,6 +3,11 @@ import { captureMessage } from '@/lib/monitoring/capture'
 
 export type EmailType = 'receipt' | 'trial_reminder'
 
+export type EmailDataMap = {
+  receipt: { tier: string; date: string }
+  trial_reminder: { daysLeft: number }
+}
+
 /**
  * Injectable mailer function — swap for a fake in tests.
  * Receives the rendered payload; handles the actual network send.
@@ -15,19 +20,18 @@ export type MailerFn = (to: string, subject: string, html: string) => Promise<vo
 
 function buildTemplate(
   type: EmailType,
-  data: Record<string, unknown>
+  data: EmailDataMap[EmailType],
 ): { subject: string; html: string } {
   switch (type) {
     case 'receipt': {
-      const tier = (data.tier as string) ?? '-'
-      const date = (data.date as string) ?? new Date().toISOString().slice(0, 10)
+      const { tier, date } = data as EmailDataMap['receipt']
       return {
         subject: 'ใบเสร็จการสั่งซื้อ — TCAS AI Practice',
         html: `<p>ขอบคุณสำหรับการสมัครสมาชิก! แพ็กเกจ <strong>${tier}</strong> ของคุณถูกเปิดใช้งานแล้วเมื่อวันที่ ${date} ค่ะ</p>`,
       }
     }
     case 'trial_reminder': {
-      const daysLeft = (data.daysLeft as number) ?? 3
+      const { daysLeft } = data as EmailDataMap['trial_reminder']
       return {
         subject: `Trial ของคุณเหลืออีก ${daysLeft} วัน — TCAS AI Practice`,
         html: `<p>Trial ของคุณจะหมดใน <strong>${daysLeft} วัน</strong> อย่าลืม upgrade เพื่อใช้งานต่อเนื่องนะคะ 🙏</p>`,
@@ -67,11 +71,11 @@ async function resendMailer(to: string, subject: string, html: string): Promise<
  * Failures are captured to Sentry and swallowed — email errors must never
  * propagate into the caller's request path.
  */
-export async function sendEmail(
-  type: EmailType,
+export async function sendEmail<T extends EmailType>(
+  type: T,
   to: string,
-  data: Record<string, unknown> = {},
-  mailer: MailerFn = resendMailer
+  data: EmailDataMap[T],
+  mailer: MailerFn = resendMailer,
 ): Promise<void> {
   try {
     const { subject, html } = buildTemplate(type, data)

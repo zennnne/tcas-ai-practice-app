@@ -64,12 +64,12 @@ describe('sendEmail seam', () => {
     it('mailer failure is swallowed — sendEmail never throws', async () => {
       const failingMailer = vi.fn().mockRejectedValue(new Error('Resend down'))
       await expect(
-        sendEmail('receipt', 'x@test.local', {}, failingMailer)
+        sendEmail('receipt', 'x@test.local', { tier: 'tier1', date: '2026-01-01' }, failingMailer)
       ).resolves.toBeUndefined()
     })
 
-    it('mailer is still called even with empty data', async () => {
-      await sendEmail('receipt', 'bare@test.local', {}, mailer)
+    it('mailer is called regardless of template content', async () => {
+      await sendEmail('receipt', 'bare@test.local', { tier: 'x', date: '2026-01-01' }, mailer)
       expect(mailer).toHaveBeenCalledOnce()
     })
   })
