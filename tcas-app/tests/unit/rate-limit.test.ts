@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { FakeStore } from '@/lib/rate-limit/store'
 import { isRateLimited, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit/limiter'
-import { getClientIP, checkIpRateLimit } from '@/app/actions/auth'
+import { getClientIP, checkIpRateLimit } from '@/lib/rate-limit/ip'
 
 // ---------------------------------------------------------------------------
 // FakeStore unit tests
