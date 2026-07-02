@@ -43,7 +43,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th" className={`${baiJamjuree.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <a href="#main-content" className="skip-link">
+          ข้ามไปยังเนื้อหาหลัก
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

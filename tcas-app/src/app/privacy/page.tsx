@@ -67,7 +67,7 @@ export default function PrivacyPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-6 py-16">
+      <main id="main-content" className="max-w-3xl mx-auto px-6 py-16">
         <div className="mb-10">
           <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">
             เวอร์ชัน: privacy_v1 · [PLACEHOLDER — วันที่มีผล]

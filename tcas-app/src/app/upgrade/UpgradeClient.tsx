@@ -76,7 +76,7 @@ export default function UpgradeClient() {
   }
 
   return (
-    <main className="min-h-dvh bg-paper flex flex-col">
+    <main id="main-content" className="min-h-dvh bg-paper flex flex-col">
       {/* Header */}
       <div className="border-b border-ruled py-16 px-4 text-center">
         <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-3">ราคาและแพ็กเกจ</p>
@@ -149,7 +149,7 @@ export default function UpgradeClient() {
       </div>
 
       {error && (
-        <p className="pb-8 text-center text-sm text-red-500">{error}</p>
+        <p className="pb-8 text-center text-sm text-red-600">{error}</p>
       )}
 
       {/* Trust footer */}

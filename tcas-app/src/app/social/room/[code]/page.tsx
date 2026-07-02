@@ -62,8 +62,9 @@ export default function RoomPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+        <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="text-center max-w-sm w-full">
+            <h1 className="sr-only">ห้องสอบ {code} — รอผู้เล่นเข้าห้อง</h1>
             <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-3">รหัสห้อง</p>
             <div className="inline-block font-mono text-5xl font-bold tracking-[0.25em] text-ink bg-panel border border-ruled rounded-2xl px-8 py-5 mb-6">
               {code}
@@ -92,7 +93,7 @@ export default function RoomPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+        <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
           <div className="max-w-lg mx-auto">
             <div className="mb-8">
               <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-1">ห้อง {code}</p>
@@ -134,7 +135,7 @@ export default function RoomPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+      <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <div>

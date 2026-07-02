@@ -50,7 +50,7 @@ export default async function PracticePage() {
       return (
         <>
           <Navbar />
-          <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+          <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
             <div className="max-w-md w-full bg-panel/60 border border-ruled rounded-2xl p-8 text-center">
               <span className="inline-block w-11 h-11 rounded-full bg-mark/40 mb-4" aria-hidden />
               <p data-testid="quota-exhausted" className="text-lg font-bold text-ink mb-2">
@@ -74,7 +74,7 @@ export default async function PracticePage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+        <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="max-w-md w-full bg-panel/60 border border-ruled rounded-2xl p-8 text-center">
             <p data-testid="no-question" className="text-lg font-bold text-ink mb-2">
               ไม่มีโจทย์ในช่วงนี้
@@ -93,7 +93,8 @@ export default async function PracticePage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+      <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+        <h1 className="sr-only">ฝึกโจทย์ {subjectLabel} · {topicLabel}</h1>
         {/* Meta bar */}
         <div className="max-w-2xl mx-auto mb-5 flex items-center gap-2 flex-wrap">
           <span className="font-mono text-xs tracking-wider text-ink-soft uppercase">{subjectLabel}</span>
