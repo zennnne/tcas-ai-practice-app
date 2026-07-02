@@ -1,9 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { setGoal, startMock, submitMock } from '@/app/actions/mock'
 import Navbar from '@/components/Navbar'
 import { AnswerChoices } from '@/components/AnswerChoices'
+import { OnboardingBanner } from '@/components/OnboardingBanner'
+import { countAttempts, isFirstVisit } from '@/lib/onboarding/status'
 
 type Phase = 'setup' | 'exam' | 'result'
 type Question = { id: string; topic: string; body: { q: string; choices: string[]; answer: string } }
@@ -28,6 +30,21 @@ export default function MockPage() {
   const [result, setResult] = useState<{ score: number; admitChance: string | null; weakTopics: string[] } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [firstVisit, setFirstVisit] = useState(false)
+
+  // เคยสอบ mock มาก่อนไหม — ใช้โชว์ empty-state บอกว่า Mock คืออะไร (ไม่บล็อกการเริ่มสอบ)
+  useEffect(() => {
+    let cancelled = false
+    async function check() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const count = await countAttempts(supabase, user.id, 'mock')
+      if (!cancelled) setFirstVisit(isFirstVisit(count))
+    }
+    check()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleStart() {
     setLoading(true)
@@ -90,6 +107,15 @@ export default function MockPage() {
         <Navbar />
         <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="w-full max-w-sm">
+            {firstVisit && (
+              <OnboardingBanner
+                testId="onboarding-first-mock"
+                eyebrow="ก่อนเริ่ม"
+                title="Mock Exam คืออะไร"
+                description="สอบจำลองสนามจริง 10 ข้อ ประเมินโอกาสติดคณะที่หวังจากคะแนนจริง — แนะนำให้ลองฝึกโจทย์ (practice) สักพักก่อน เพื่อให้ AI ปรับระดับให้ตรงจุด"
+              />
+            )}
+
             <div className="mb-8">
               <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">จำลองสนามจริง</p>
               <h1 className="text-3xl font-bold text-ink leading-tight">Mock Exam</h1>
