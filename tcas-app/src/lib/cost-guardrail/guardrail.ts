@@ -13,6 +13,12 @@ import { captureMessage } from '@/lib/monitoring/capture'
  * in tests). A daily counter is just INCRBY + TTL, identical shape to a
  * rate-limit window counter, so no new store abstraction is introduced.
  *
+ * ⚠️ SAFETY: without `UPSTASH_REDIS_REST_URL`/`_TOKEN` the store is a no-op
+ * that always returns 0, so the counter never climbs and this breaker is
+ * effectively DISABLED (every call is allowed). Wiring Upstash in prod is a
+ * hard prerequisite for the cost guardrail to protect runway at all — not
+ * optional like it is for rate limiting.
+ *
  * Alerts: go through the existing Sentry seam (`captureMessage`).
  *
  * Supabase usage (out of scope for code — ops/human config):

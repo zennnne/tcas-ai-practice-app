@@ -1,32 +1,18 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createRoom, joinRoom } from '@/app/actions/social'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
 import { OnboardingBanner } from '@/components/OnboardingBanner'
-import { countAttempts, isFirstVisit } from '@/lib/onboarding/status'
+import { useFirstVisit } from '@/lib/onboarding/use-first-visit'
 
 export default function SocialLobbyPage() {
   const router = useRouter()
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState<'create' | 'join' | null>(null)
-  const [firstVisit, setFirstVisit] = useState(false)
-
   // เคยเล่นสนามสอบมาก่อนไหม — ใช้โชว์ empty-state อธิบายวิธีเล่นครั้งแรก
-  useEffect(() => {
-    let cancelled = false
-    async function check() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const count = await countAttempts(supabase, user.id, 'social')
-      if (!cancelled) setFirstVisit(isFirstVisit(count))
-    }
-    check()
-    return () => { cancelled = true }
-  }, [])
+  const firstVisit = useFirstVisit('social')
 
   async function handleCreate() {
     setLoading('create')

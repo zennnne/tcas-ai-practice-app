@@ -1,11 +1,11 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { setGoal, startMock, submitMock } from '@/app/actions/mock'
 import Navbar from '@/components/Navbar'
 import { AnswerChoices } from '@/components/AnswerChoices'
 import { OnboardingBanner } from '@/components/OnboardingBanner'
-import { countAttempts, isFirstVisit } from '@/lib/onboarding/status'
+import { useFirstVisit } from '@/lib/onboarding/use-first-visit'
 
 type Phase = 'setup' | 'exam' | 'result'
 type Question = { id: string; topic: string; body: { q: string; choices: string[]; answer: string } }
@@ -30,21 +30,8 @@ export default function MockPage() {
   const [result, setResult] = useState<{ score: number; admitChance: string | null; weakTopics: string[] } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [firstVisit, setFirstVisit] = useState(false)
-
   // เคยสอบ mock มาก่อนไหม — ใช้โชว์ empty-state บอกว่า Mock คืออะไร (ไม่บล็อกการเริ่มสอบ)
-  useEffect(() => {
-    let cancelled = false
-    async function check() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const count = await countAttempts(supabase, user.id, 'mock')
-      if (!cancelled) setFirstVisit(isFirstVisit(count))
-    }
-    check()
-    return () => { cancelled = true }
-  }, [])
+  const firstVisit = useFirstVisit('mock')
 
   async function handleStart() {
     setLoading(true)

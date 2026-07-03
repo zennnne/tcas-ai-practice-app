@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 const CHOICE_LABELS = ['ก', 'ข', 'ค', 'ง', 'จ']
 
@@ -25,10 +25,10 @@ interface Props {
 export function AnswerChoices({ choices, answer, selected, onSelect }: Props) {
   const revealed = selected !== null
   const [activeIndex, setActiveIndex] = useState(0)
-  const refs: Array<HTMLButtonElement | null> = []
+  const refs = useRef<Array<HTMLButtonElement | null>>([])
 
   function focusIndex(i: number) {
-    refs[i]?.focus()
+    refs.current[i]?.focus()
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, i: number) {
@@ -80,7 +80,7 @@ export function AnswerChoices({ choices, answer, selected, onSelect }: Props) {
         return (
           <button
             key={c}
-            ref={(el) => { refs[i] = el }}
+            ref={(el) => { refs.current[i] = el }}
             role="radio"
             aria-checked={isSelected}
             data-choice={c}
