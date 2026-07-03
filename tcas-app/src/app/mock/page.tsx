@@ -125,7 +125,7 @@ export default function MockPage() {
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="faculty" className="text-sm font-medium text-ink-soft">
-                  คณะเป้าหมาย <span className="text-graphite">(ไม่บังคับ)</span>
+                  คณะเป้าหมาย <span className="text-ink-soft">(ไม่บังคับ)</span>
                 </label>
                 <input
                   id="faculty"

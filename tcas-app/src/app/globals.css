@@ -10,8 +10,10 @@
   --color-pen:      #2F5BFF;
   --color-pen-deep: #1E40AF;
   --color-mark:     #FFDC4A;
-  /* darkened from #16A34A for WCAG AA — text-on-paper 3.16:1 -> 4.80:1, white-on-fill 3.30:1 -> 5.02:1 */
-  --color-correct:  #15803D;
+  /* darkened from #16A34A for WCAG AA. green-800 clears text-correct on the
+     bg-correct/10 tint too (level pill: was 4.21 at #15803D -> passes at 4.5+);
+     text-on-paper and white-on-fill only improve as the token darkens. */
+  --color-correct:  #166534;
   --color-graphite: #C7C0B0;
 
   --font-sans: var(--font-bai), system-ui, sans-serif;
