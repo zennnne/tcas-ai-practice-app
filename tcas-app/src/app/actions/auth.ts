@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getClientIP, checkIpRateLimit } from '@/lib/rate-limit/ip'
 import { validateConsent } from '@/lib/consent/consent'
+import { capture } from '@/lib/analytics/capture'
 
 export async function signup(
   email: string,
@@ -29,6 +30,9 @@ export async function signup(
   })
   // Record PDPA consent with the exact policy version accepted
   await supabase.from('consents').insert({ user_id: uid, policy_version: policyVersion })
+  // Conversion funnel: account created + 7-day trial started (same moment here)
+  await capture('signup', uid)
+  await capture('trial_started', uid, { trial_days: 7 })
   return { ok: true }
 }
 

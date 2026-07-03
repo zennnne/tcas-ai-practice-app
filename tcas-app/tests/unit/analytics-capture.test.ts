@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const captureMock = vi.fn();
 const shutdownMock = vi.fn().mockResolvedValue(undefined);
 
+// Regular (non-arrow) function so it can be used with `new` — the capture
+// seam constructs `new PostHog(...)`, and arrow functions are not constructors.
 vi.mock("posthog-node", () => ({
-  PostHog: vi.fn().mockImplementation(() => ({
-    capture: captureMock,
-    _shutdown: shutdownMock,
-  })),
+  PostHog: vi.fn().mockImplementation(function () {
+    return { capture: captureMock, _shutdown: shutdownMock };
+  }),
 }));
 
 // The module reads NEXT_PUBLIC_POSTHOG_KEY / NEXT_PUBLIC_POSTHOG_HOST at

@@ -25,7 +25,12 @@ export async function capture(
 ): Promise<void> {
   if (!apiKey) return;
 
-  const client = new PostHog(apiKey, { host, flushAt: 1, flushInterval: 0 });
-  client.capture({ distinctId, event, properties });
-  await client._shutdown();
+  // Analytics must never break a user flow — swallow any send/shutdown error.
+  try {
+    const client = new PostHog(apiKey, { host, flushAt: 1, flushInterval: 0 });
+    client.capture({ distinctId, event, properties });
+    await client._shutdown();
+  } catch {
+    // best-effort telemetry; drop silently
+  }
 }
