@@ -1,14 +1,32 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createRoom, joinRoom } from '@/app/actions/social'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
+import { OnboardingBanner } from '@/components/OnboardingBanner'
+import { countAttempts, isFirstVisit } from '@/lib/onboarding/status'
 
 export default function SocialLobbyPage() {
   const router = useRouter()
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState<'create' | 'join' | null>(null)
+  const [firstVisit, setFirstVisit] = useState(false)
+
+  // เคยเล่นสนามสอบมาก่อนไหม — ใช้โชว์ empty-state อธิบายวิธีเล่นครั้งแรก
+  useEffect(() => {
+    let cancelled = false
+    async function check() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const count = await countAttempts(supabase, user.id, 'social')
+      if (!cancelled) setFirstVisit(isFirstVisit(count))
+    }
+    check()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleCreate() {
     setLoading('create')
@@ -38,6 +56,15 @@ export default function SocialLobbyPage() {
             <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">แข่งกับเพื่อนสูงสุด 10 คน</p>
             <h1 className="text-3xl sm:text-4xl font-bold text-ink leading-tight">สนามสอบ Real-time</h1>
           </div>
+
+          {firstVisit && (
+            <OnboardingBanner
+              testId="onboarding-first-social"
+              eyebrow="วิธีเล่น"
+              title="ยังไม่มีห้องของคุณตอนนี้"
+              description="สร้างห้องแล้วแชร์รหัสให้เพื่อน หรือใส่รหัสที่ได้รับเพื่อเข้าร่วม — ทุกคนตอบพร้อมกัน ใครตอบถูกและเร็วกว่าได้คะแนนสูงกว่า"
+            />
+          )}
 
           <div className="grid sm:grid-cols-2 gap-5">
             {/* Create room card */}

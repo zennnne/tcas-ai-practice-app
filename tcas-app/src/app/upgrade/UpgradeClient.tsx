@@ -40,7 +40,9 @@ function Check() {
   )
 }
 
-export default function UpgradeClient() {
+type TrialInfo = { daysLeft: number } | null
+
+export default function UpgradeClient({ trialInfo = null }: { trialInfo?: TrialInfo }) {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -86,6 +88,16 @@ export default function UpgradeClient() {
         <p className="text-ink-soft text-base max-w-md mx-auto">
           ยกเลิกได้ทุกเมื่อ ไม่มีข้อผูกมัด
         </p>
+
+        {trialInfo && (
+          <p
+            data-testid="trial-banner"
+            className="inline-flex items-center gap-2 mt-6 mx-auto px-5 py-2.5 rounded-full border border-pen/30 bg-pen/5 text-sm text-ink"
+          >
+            คุณกำลังทดลองใช้ฟรีอยู่ — เหลืออีก{' '}
+            <span className="font-bold text-pen">{trialInfo.daysLeft} วัน</span>
+          </p>
+        )}
       </div>
 
       {/* Pricing cards */}
