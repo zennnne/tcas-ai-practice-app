@@ -66,6 +66,7 @@ export default function Home() {
     <>
       <Navbar />
 
+      <main id="main-content">
       {/* ── HERO ──────────────────────────────────────────── */}
       <section className="paper-ruled relative overflow-hidden">
         {/* margin line, like a notebook */}
@@ -198,6 +199,7 @@ export default function Home() {
           </Link>
         </div>
       </section>
+      </main>
 
       {/* ── FOOTER ────────────────────────────────────────── */}
       <footer className="border-t border-ruled">
@@ -242,7 +244,7 @@ const BUBBLE_LABELS = ["ก", "ข", "ค", "ง"];
 
 function AnswerSheet() {
   return (
-    <div className="drift relative w-full max-w-sm">
+    <div className="drift relative w-full max-w-sm" aria-hidden="true">
       <div className="bg-paper border border-ruled rounded-2xl shadow-[0_24px_60px_-20px_rgba(24,34,59,0.28)] p-6 select-none">
 
         {/* Sheet header */}

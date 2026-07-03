@@ -88,7 +88,7 @@ export default function MockPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+        <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="w-full max-w-sm">
             <div className="mb-8">
               <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">จำลองสนามจริง</p>
@@ -110,7 +110,7 @@ export default function MockPage() {
                 />
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-red-600">{error}</p>}
 
               <button
                 onClick={handleStart}
@@ -134,7 +134,8 @@ export default function MockPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-20 pb-16 px-4">
+        <main id="main-content" className="min-h-dvh bg-paper pt-20 pb-16 px-4">
+          <h1 className="sr-only">Mock Exam — ข้อ {current + 1} จาก {questions.length}</h1>
           {/* Progress bar */}
           <div className="fixed top-16 inset-x-0 h-1 bg-ruled z-40" aria-hidden>
             <div
@@ -177,7 +178,7 @@ export default function MockPage() {
               />
             </div>
 
-            {error && <p className="mt-4 text-sm text-red-500 text-center">{error}</p>}
+            {error && <p className="mt-4 text-sm text-red-600 text-center">{error}</p>}
           </div>
         </main>
       </>
@@ -187,16 +188,16 @@ export default function MockPage() {
   // ── Result ─────────────────────────────────────────────────────
   const scoreVal = result?.score ?? 0
   const pct = Math.round(scoreVal)
-  const scoreColor = pct >= 70 ? 'text-correct' : pct >= 50 ? 'text-pen' : 'text-red-500'
+  const scoreColor = pct >= 70 ? 'text-correct' : pct >= 50 ? 'text-pen' : 'text-red-600'
 
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+      <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
         <div className="max-w-lg mx-auto">
           <div className="mb-6">
             <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-1">ผลสอบ</p>
-            <h2 className="text-2xl font-bold text-ink">Mock Exam เสร็จแล้ว</h2>
+            <h1 className="text-2xl font-bold text-ink">Mock Exam เสร็จแล้ว</h1>
           </div>
 
           {/* Score card */}
@@ -237,7 +238,7 @@ export default function MockPage() {
 
           <button
             onClick={handleRetry}
-            className="w-full py-3.5 rounded-full border-2 border-ruled text-ink font-semibold hover:border-ink-soft hover:bg-panel/40 transition-colors"
+            className="w-full py-3.5 rounded-full border-2 border-ruled text-ink font-semibold hover:border-ink-soft hover:bg-panel/40 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
           >
             สอบอีกครั้ง
           </button>

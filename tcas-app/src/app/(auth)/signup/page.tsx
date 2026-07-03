@@ -24,16 +24,16 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-dvh bg-paper flex flex-col">
-      <div className="px-6 py-5">
-        <Link href="/" className="inline-flex items-center gap-1 text-lg font-bold text-ink">
+      <header className="px-6 py-5">
+        <Link href="/" className="inline-flex items-center gap-1 text-lg font-bold text-ink rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen">
           TCAS
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pen text-paper text-[11px] font-bold">
             ai
           </span>
         </Link>
-      </div>
+      </header>
 
-      <div className="flex-1 flex items-center justify-center px-4 pb-20">
+      <main id="main-content" className="flex-1 flex items-center justify-center px-4 pb-20">
         <div className="w-full max-w-sm">
           <div className="mb-8">
             <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">เริ่มต้นฟรี ไม่ต้องใส่บัตร</p>
@@ -92,7 +92,7 @@ export default function SignupPage() {
               </span>
             </label>
 
-            {err && <p role="alert" className="text-sm text-red-500 -mt-2">{err}</p>}
+            {err && <p role="alert" className="text-sm text-red-600 -mt-2">{err}</p>}
 
             <button
               type="submit"
@@ -110,7 +110,7 @@ export default function SignupPage() {
             </Link>
           </p>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
