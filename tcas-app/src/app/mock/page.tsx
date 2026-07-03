@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import { setGoal, startMock, submitMock } from '@/app/actions/mock'
 import Navbar from '@/components/Navbar'
 import { AnswerChoices } from '@/components/AnswerChoices'
+import { OnboardingBanner } from '@/components/OnboardingBanner'
+import { useFirstVisit } from '@/lib/onboarding/use-first-visit'
 
 type Phase = 'setup' | 'exam' | 'result'
 type Question = { id: string; topic: string; body: { q: string; choices: string[]; answer: string } }
@@ -28,6 +30,8 @@ export default function MockPage() {
   const [result, setResult] = useState<{ score: number; admitChance: string | null; weakTopics: string[] } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  // เคยสอบ mock มาก่อนไหม — ใช้โชว์ empty-state บอกว่า Mock คืออะไร (ไม่บล็อกการเริ่มสอบ)
+  const firstVisit = useFirstVisit('mock')
 
   async function handleStart() {
     setLoading(true)
@@ -88,8 +92,17 @@ export default function MockPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+        <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="w-full max-w-sm">
+            {firstVisit && (
+              <OnboardingBanner
+                testId="onboarding-first-mock"
+                eyebrow="ก่อนเริ่ม"
+                title="Mock Exam คืออะไร"
+                description="สอบจำลองสนามจริง 10 ข้อ ประเมินโอกาสติดคณะที่หวังจากคะแนนจริง — แนะนำให้ลองฝึกโจทย์ (practice) สักพักก่อน เพื่อให้ AI ปรับระดับให้ตรงจุด"
+              />
+            )}
+
             <div className="mb-8">
               <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">จำลองสนามจริง</p>
               <h1 className="text-3xl font-bold text-ink leading-tight">Mock Exam</h1>
@@ -99,7 +112,7 @@ export default function MockPage() {
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="faculty" className="text-sm font-medium text-ink-soft">
-                  คณะเป้าหมาย <span className="text-graphite">(ไม่บังคับ)</span>
+                  คณะเป้าหมาย <span className="text-ink-soft">(ไม่บังคับ)</span>
                 </label>
                 <input
                   id="faculty"
@@ -110,7 +123,7 @@ export default function MockPage() {
                 />
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-red-600">{error}</p>}
 
               <button
                 onClick={handleStart}
@@ -134,7 +147,8 @@ export default function MockPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-20 pb-16 px-4">
+        <main id="main-content" className="min-h-dvh bg-paper pt-20 pb-16 px-4">
+          <h1 className="sr-only">Mock Exam — ข้อ {current + 1} จาก {questions.length}</h1>
           {/* Progress bar */}
           <div className="fixed top-16 inset-x-0 h-1 bg-ruled z-40" aria-hidden>
             <div
@@ -177,7 +191,7 @@ export default function MockPage() {
               />
             </div>
 
-            {error && <p className="mt-4 text-sm text-red-500 text-center">{error}</p>}
+            {error && <p className="mt-4 text-sm text-red-600 text-center">{error}</p>}
           </div>
         </main>
       </>
@@ -187,16 +201,16 @@ export default function MockPage() {
   // ── Result ─────────────────────────────────────────────────────
   const scoreVal = result?.score ?? 0
   const pct = Math.round(scoreVal)
-  const scoreColor = pct >= 70 ? 'text-correct' : pct >= 50 ? 'text-pen' : 'text-red-500'
+  const scoreColor = pct >= 70 ? 'text-correct' : pct >= 50 ? 'text-pen' : 'text-red-600'
 
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+      <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
         <div className="max-w-lg mx-auto">
           <div className="mb-6">
             <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-1">ผลสอบ</p>
-            <h2 className="text-2xl font-bold text-ink">Mock Exam เสร็จแล้ว</h2>
+            <h1 className="text-2xl font-bold text-ink">Mock Exam เสร็จแล้ว</h1>
           </div>
 
           {/* Score card */}
@@ -237,7 +251,7 @@ export default function MockPage() {
 
           <button
             onClick={handleRetry}
-            className="w-full py-3.5 rounded-full border-2 border-ruled text-ink font-semibold hover:border-ink-soft hover:bg-panel/40 transition-colors"
+            className="w-full py-3.5 rounded-full border-2 border-ruled text-ink font-semibold hover:border-ink-soft hover:bg-panel/40 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
           >
             สอบอีกครั้ง
           </button>

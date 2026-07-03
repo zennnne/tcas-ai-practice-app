@@ -40,7 +40,9 @@ function Check() {
   )
 }
 
-export default function UpgradeClient() {
+type TrialInfo = { daysLeft: number } | null
+
+export default function UpgradeClient({ trialInfo = null }: { trialInfo?: TrialInfo }) {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -76,7 +78,7 @@ export default function UpgradeClient() {
   }
 
   return (
-    <main className="min-h-dvh bg-paper flex flex-col">
+    <main id="main-content" className="min-h-dvh bg-paper flex flex-col">
       {/* Header */}
       <div className="border-b border-ruled py-16 px-4 text-center">
         <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-3">ราคาและแพ็กเกจ</p>
@@ -86,6 +88,16 @@ export default function UpgradeClient() {
         <p className="text-ink-soft text-base max-w-md mx-auto">
           ยกเลิกได้ทุกเมื่อ ไม่มีข้อผูกมัด
         </p>
+
+        {trialInfo && (
+          <p
+            data-testid="trial-banner"
+            className="inline-flex items-center gap-2 mt-6 mx-auto px-5 py-2.5 rounded-full border border-pen/30 bg-pen/5 text-sm text-ink"
+          >
+            คุณกำลังทดลองใช้ฟรีอยู่ — เหลืออีก{' '}
+            <span className="font-bold text-pen">{trialInfo.daysLeft} วัน</span>
+          </p>
+        )}
       </div>
 
       {/* Pricing cards */}
@@ -149,7 +161,7 @@ export default function UpgradeClient() {
       </div>
 
       {error && (
-        <p className="pb-8 text-center text-sm text-red-500">{error}</p>
+        <p className="pb-8 text-center text-sm text-red-600">{error}</p>
       )}
 
       {/* Trust footer */}

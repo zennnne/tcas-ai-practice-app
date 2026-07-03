@@ -1,10 +1,10 @@
-/** Shared store interface for rate-limit counters. */
+/** Shared store interface for rate-limit / usage counters. */
 export interface RateLimitStore {
   /**
-   * Atomically increment a key and return the new count.
+   * Atomically increment a key by `amount` (default 1) and return the new count.
    * Sets TTL (seconds) on the first write; subsequent calls may extend or leave TTL unchanged.
    */
-  increment(key: string, ttlSeconds: number): Promise<number>
+  increment(key: string, ttlSeconds: number, amount?: number): Promise<number>
 }
 
 // ---------------------------------------------------------------------------
@@ -13,13 +13,14 @@ export interface RateLimitStore {
 
 /**
  * Upstash Redis store backed by the REST HTTP API.
- * Uses a two-command pipeline: INCR + EXPIRE (resets TTL each call — acceptable
- * because the caller embeds the window number in the key).
+ * Uses a two-command pipeline: INCRBY + EXPIRE (resets TTL each call — acceptable
+ * because the caller embeds the window number in the key). INCRBY with amount=1
+ * behaves identically to INCR.
  */
 export class UpstashStore implements RateLimitStore {
   constructor(private readonly url: string, private readonly token: string) {}
 
-  async increment(key: string, ttlSeconds: number): Promise<number> {
+  async increment(key: string, ttlSeconds: number, amount = 1): Promise<number> {
     const res = await fetch(`${this.url}/pipeline`, {
       method: 'POST',
       headers: {
@@ -27,7 +28,7 @@ export class UpstashStore implements RateLimitStore {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify([
-        ['INCR', key],
+        ['INCRBY', key, String(amount)],
         ['EXPIRE', key, String(ttlSeconds)],
       ]),
     })
@@ -45,14 +46,14 @@ export class UpstashStore implements RateLimitStore {
 export class FakeStore implements RateLimitStore {
   private readonly m = new Map<string, { count: number; exp: number }>()
 
-  async increment(key: string, ttlSeconds: number): Promise<number> {
+  async increment(key: string, ttlSeconds: number, amount = 1): Promise<number> {
     const now = Date.now()
     const entry = this.m.get(key)
     if (!entry || entry.exp <= now) {
-      this.m.set(key, { count: 1, exp: now + ttlSeconds * 1000 })
-      return 1
+      this.m.set(key, { count: amount, exp: now + ttlSeconds * 1000 })
+      return amount
     }
-    entry.count++
+    entry.count += amount
     return entry.count
   }
 

@@ -10,7 +10,10 @@
   --color-pen:      #2F5BFF;
   --color-pen-deep: #1E40AF;
   --color-mark:     #FFDC4A;
-  --color-correct:  #16A34A;
+  /* darkened from #16A34A for WCAG AA. green-800 clears text-correct on the
+     bg-correct/10 tint too (level pill: was 4.21 at #15803D -> passes at 4.5+);
+     text-on-paper and white-on-fill only improve as the token darkens. */
+  --color-correct:  #166534;
   --color-graphite: #C7C0B0;
 
   --font-sans: var(--font-bai), system-ui, sans-serif;
@@ -52,7 +55,27 @@
   .field-line {
     @apply bg-transparent border-b-2 border-ruled py-2.5 text-ink transition-colors;
     @apply outline-none placeholder:text-graphite focus:border-pen;
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen;
   }
+}
+
+/* ─── Skip-to-content link (WCAG 2.4.1) ────────────── */
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3.5rem;
+  z-index: 100;
+  background: var(--color-pen);
+  color: var(--color-paper);
+  padding: 0.6rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 1rem;
 }
 
 /* ─── Ruled-paper background ───────────────────────── */

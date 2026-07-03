@@ -12,7 +12,7 @@ const NAV_LINKS = [
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-1 text-xl font-bold tracking-tight text-ink">
+    <Link href="/" className="flex items-center gap-1 text-xl font-bold tracking-tight text-ink rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen">
       TCAS
       <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pen text-paper text-[11px] font-bold">
         ai
@@ -47,7 +47,7 @@ export default function Navbar() {
             <Link
               key={href}
               href={href}
-              className="text-sm text-ink-soft hover:text-ink transition-colors"
+              className="text-sm text-ink-soft hover:text-ink transition-colors rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
             >
               {label}
             </Link>
@@ -57,7 +57,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           <Link
             href="/login"
-            className="text-sm text-ink-soft hover:text-ink transition-colors px-4 py-2"
+            className="text-sm text-ink-soft hover:text-ink transition-colors px-4 py-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
           >
             เข้าสู่ระบบ
           </Link>
@@ -71,7 +71,7 @@ export default function Navbar() {
 
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="md:hidden flex flex-col gap-1.5 p-2"
+          className="md:hidden flex flex-col gap-1.5 p-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
           aria-label={mobileOpen ? "ปิดเมนู" : "เปิดเมนู"}
           aria-expanded={mobileOpen}
         >
@@ -88,7 +88,7 @@ export default function Navbar() {
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className="text-base text-ink-soft hover:text-ink py-2.5 transition-colors"
+              className="text-base text-ink-soft hover:text-ink py-2.5 transition-colors rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
             >
               {label}
             </Link>
@@ -97,7 +97,7 @@ export default function Navbar() {
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}
-              className="text-center text-sm border border-ruled rounded-full py-2.5 text-ink-soft hover:text-ink hover:border-ink-soft transition-colors"
+              className="text-center text-sm border border-ruled rounded-full py-2.5 text-ink-soft hover:text-ink hover:border-ink-soft transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen"
             >
               เข้าสู่ระบบ
             </Link>

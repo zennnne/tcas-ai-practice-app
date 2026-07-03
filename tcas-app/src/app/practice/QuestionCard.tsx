@@ -47,7 +47,7 @@ export function QuestionCard({ questionId, q, choices, answer }: Props) {
       {/* Feedback + Next */}
       {selected && (
         <div data-testid="result" className="mt-6 pt-5 border-t border-ruled flex items-center justify-between gap-4 flex-wrap">
-          <p className={`text-sm font-semibold ${correct ? 'text-correct' : 'text-red-500'}`}>
+          <p className={`text-sm font-semibold ${correct ? 'text-correct' : 'text-red-600'}`}>
             {correct ? 'ถูกต้อง!' : `ผิด — เฉลยคือ "${answer}"`}
           </p>
           <button

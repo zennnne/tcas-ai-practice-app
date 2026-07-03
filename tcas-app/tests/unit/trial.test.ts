@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { downgradeTarget } from '@/lib/billing/trial'
+import { downgradeTarget, trialDaysLeft } from '@/lib/billing/trial'
 
 const now = new Date('2026-09-10T00:00:00Z')
 
@@ -15,5 +15,15 @@ describe('downgradeTarget', () => {
   it('paid never downgrades on expiry', () => {
     expect(downgradeTarget({ status: 'paid', trialEndsAt: '2026-09-01T00:00:00Z' }, now))
       .toBeNull()
+  })
+})
+
+describe('trialDaysLeft', () => {
+  it('rounds up partial days remaining', () => {
+    expect(trialDaysLeft('2026-09-15T00:00:00Z', now)).toBe(5)
+    expect(trialDaysLeft('2026-09-10T12:00:00Z', now)).toBe(1)
+  })
+  it('never goes negative once trial has ended', () => {
+    expect(trialDaysLeft('2026-09-01T00:00:00Z', now)).toBe(0)
   })
 })

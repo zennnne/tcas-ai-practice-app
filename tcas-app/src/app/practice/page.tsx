@@ -4,8 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { pickQuestion, rankToLevel } from '@/lib/practice/serving'
 import { canTriggerGen } from '@/lib/practice/free-pool'
 import { getSubscription } from '@/lib/billing/subscription'
+import { countAttempts, isFirstVisit } from '@/lib/onboarding/status'
 import { QuestionCard } from './QuestionCard'
 import Navbar from '@/components/Navbar'
+import { OnboardingBanner } from '@/components/OnboardingBanner'
 
 // default subject/topic; query params ขยายได้ภายหลัง
 const DEFAULT_SUBJECT = 'math'
@@ -50,7 +52,7 @@ export default async function PracticePage() {
       return (
         <>
           <Navbar />
-          <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+          <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
             <div className="max-w-md w-full bg-panel/60 border border-ruled rounded-2xl p-8 text-center">
               <span className="inline-block w-11 h-11 rounded-full bg-mark/40 mb-4" aria-hidden />
               <p data-testid="quota-exhausted" className="text-lg font-bold text-ink mb-2">
@@ -74,7 +76,7 @@ export default async function PracticePage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
+        <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="max-w-md w-full bg-panel/60 border border-ruled rounded-2xl p-8 text-center">
             <p data-testid="no-question" className="text-lg font-bold text-ink mb-2">
               ไม่มีโจทย์ในช่วงนี้
@@ -89,11 +91,22 @@ export default async function PracticePage() {
   }
 
   const body = question.body as { q: string; choices: string[]; answer: string }
+  const firstVisit = isFirstVisit(await countAttempts(supabase, user.id, 'practice'))
 
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+      <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+        <h1 className="sr-only">ฝึกโจทย์ {subjectLabel} · {topicLabel}</h1>
+        {firstVisit && (
+          <OnboardingBanner
+            testId="onboarding-first-practice"
+            eyebrow="ยินดีต้อนรับ"
+            title="นี่คือโจทย์ข้อแรกของคุณ"
+            description="ลองตอบดูเลย — AI จะเรียนรู้จุดแข็งจุดอ่อนของคุณจากทุกข้อที่ทำ แล้วปรับความยากให้เหมาะกับคุณเรื่อยๆ"
+          />
+        )}
+
         {/* Meta bar */}
         <div className="max-w-2xl mx-auto mb-5 flex items-center gap-2 flex-wrap">
           <span className="font-mono text-xs tracking-wider text-ink-soft uppercase">{subjectLabel}</span>

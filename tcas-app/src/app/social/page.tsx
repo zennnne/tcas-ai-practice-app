@@ -3,12 +3,16 @@ import { useState } from 'react'
 import { createRoom, joinRoom } from '@/app/actions/social'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import { OnboardingBanner } from '@/components/OnboardingBanner'
+import { useFirstVisit } from '@/lib/onboarding/use-first-visit'
 
 export default function SocialLobbyPage() {
   const router = useRouter()
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState<'create' | 'join' | null>(null)
+  // เคยเล่นสนามสอบมาก่อนไหม — ใช้โชว์ empty-state อธิบายวิธีเล่นครั้งแรก
+  const firstVisit = useFirstVisit('social')
 
   async function handleCreate() {
     setLoading('create')
@@ -32,12 +36,21 @@ export default function SocialLobbyPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-paper pt-24 pb-16 px-4">
+      <main id="main-content" className="min-h-dvh bg-paper pt-24 pb-16 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="mb-10">
             <p className="font-mono text-xs tracking-wider text-ink-soft uppercase mb-2">แข่งกับเพื่อนสูงสุด 10 คน</p>
             <h1 className="text-3xl sm:text-4xl font-bold text-ink leading-tight">สนามสอบ Real-time</h1>
           </div>
+
+          {firstVisit && (
+            <OnboardingBanner
+              testId="onboarding-first-social"
+              eyebrow="วิธีเล่น"
+              title="ยังไม่มีห้องของคุณตอนนี้"
+              description="สร้างห้องแล้วแชร์รหัสให้เพื่อน หรือใส่รหัสที่ได้รับเพื่อเข้าร่วม — ทุกคนตอบพร้อมกัน ใครตอบถูกและเร็วกว่าได้คะแนนสูงกว่า"
+            />
+          )}
 
           <div className="grid sm:grid-cols-2 gap-5">
             {/* Create room card */}
@@ -68,13 +81,15 @@ export default function SocialLobbyPage() {
                 </p>
               </div>
               <div className="mt-auto flex flex-col gap-3">
+                <label htmlFor="join-code" className="sr-only">รหัสห้อง</label>
                 <input
+                  id="join-code"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
                   placeholder="รหัสห้อง เช่น ABC123"
                   maxLength={6}
-                  className="bg-panel border border-ruled rounded-xl px-4 py-3 font-mono text-center text-xl tracking-[0.3em] text-ink placeholder:text-graphite placeholder:text-sm placeholder:tracking-normal focus:outline-none focus:border-pen transition-colors"
+                  className="bg-panel border border-ruled rounded-xl px-4 py-3 font-mono text-center text-xl tracking-[0.3em] text-ink placeholder:text-graphite placeholder:text-sm placeholder:tracking-normal focus:outline-none focus:border-pen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pen transition-colors"
                 />
                 <button
                   onClick={handleJoin}
@@ -88,7 +103,7 @@ export default function SocialLobbyPage() {
           </div>
 
           {error && (
-            <p className="mt-5 text-center text-sm text-red-500">{error}</p>
+            <p className="mt-5 text-center text-sm text-red-600">{error}</p>
           )}
         </div>
       </main>

@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { verifySignature, parseChargeComplete } from '@/lib/billing/webhook'
 import { captureMessage } from '@/lib/monitoring/capture'
 import { sendEmail } from '@/lib/email/send'
+import { capture } from '@/lib/analytics/capture'
 
 const VALID_TIERS = new Set(['tier1', 'tier2'])
 
@@ -51,6 +52,9 @@ export async function POST(req: Request) {
     })
     return new Response('no_subscription_row', { status: 500 })
   }
+
+  // Conversion funnel bottom: trial/free → paid subscriber
+  await capture('subscription_paid', intent.userId, { tier: intent.tier })
 
   // Receipt email — fire after successful activation, NOT on dedup skip
   try {
