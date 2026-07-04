@@ -14,18 +14,22 @@ create table user_reputation (
 );
 
 -- recompute job: คำนวณ confidence ใหม่ต่อโจทย์ → apply action
--- (สะท้อน recomputeConfidence + routeQuestion; รันเป็นรอบ เช่น ทุก 15 นาที)
--- ⚠️ constants ด้านล่างต้องตรงกับ TS เสมอ — แก้ต้องแก้คู่กัน:
---   penalty ×8, ratingAdj ±5  → src/lib/quality/confidence.ts (recomputeConfidence)
---   floor < 50                 → src/lib/quality/confidence.ts (CONFIDENCE_FLOOR)
---   mock trigger < 90          → src/lib/quality/routing.ts (MOCK_REVIEW_TRIGGER)
+-- (รันเป็นรอบ เช่น ทุก 15 นาที ผ่าน pg_cron)
+-- 🏠 บ้านเดียวของกฎ quality (ADR-0001: one home per rule — ห้ามมี TS mirror)
+--   penalty ×8 / report (ถ่วง reporter weight) · ratingAdj ±5
+--   reporter weight = clamp(0.5 + accuracy×1.5, 0..2) · user ใหม่ (ไม่มีประวัติ) = 1.0
+--   practice floor < 50 → suspend · mock-eligible ตก < 90 → review queue
+--   ค่าทั้งหมด tune ได้ตาม design doc §9
 create or replace function recompute_quality() returns void language plpgsql as $$
 declare q record; new_conf double precision; w_reports double precision;
         good_ct int; bad_ct int;
 begin
   for q in select id, confidence_score, mock_eligible from questions where status = 'active' loop
-    select coalesce(sum(r.weight * coalesce(rep.confirmed_reports::float /
-             nullif(rep.confirmed_reports + rep.rejected_reports, 0), 1)), 0)
+    select coalesce(sum(r.weight * case
+             when rep.user_id is null or rep.confirmed_reports + rep.rejected_reports = 0 then 1.0
+             else greatest(0, least(2, 0.5 + (rep.confirmed_reports::float
+                    / (rep.confirmed_reports + rep.rejected_reports)) * 1.5))
+           end), 0)
       into w_reports
       from reports r left join user_reputation rep on rep.user_id = r.user_id
       where r.question_id = q.id;

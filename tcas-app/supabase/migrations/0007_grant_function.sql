@@ -1,3 +1,5 @@
+-- 🏠 บ้านเดียวของกฎ daily grant (ADR-0001: one home per rule — ห้ามมี TS mirror)
+--   cap = grant × 7 วัน (invariant สะสม cap 7 วัน) · เฉพาะ subscription trial/paid
 create or replace function grant_daily_tokens() returns void language plpgsql as $$
 begin
   -- tier1: +1 practice / +1 social, cap 7 each
