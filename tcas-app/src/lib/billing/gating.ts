@@ -6,7 +6,7 @@ export interface Features {
   practice: boolean; showRank: boolean; mock: boolean; social: boolean; socialToken: boolean
 }
 
-// single source of truth: "has paying access" — ใช้ทั้ง featuresFor + free-pool
+// single source of truth: "has paying access" — ใช้ทั้ง featuresFor + practice page gen-quota check
 export function isPremium(status: Status): boolean {
   return status === 'trial' || status === 'paid'
 }

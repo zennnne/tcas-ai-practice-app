@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { pickQuestion, rankToLevel } from '@/lib/practice/serving'
-import { canTriggerGen } from '@/lib/practice/free-pool'
+import { isPremium } from '@/lib/billing/gating'
 import { getSubscription } from '@/lib/billing/subscription'
 import { countAttempts, isFirstVisit } from '@/lib/onboarding/status'
 import { QuestionCard } from './QuestionCard'
@@ -48,7 +48,7 @@ export default async function PracticePage() {
 
   if (!question) {
     // กฎเหล็ก §3.1: free = recycled only — ถ้า pool ว่าง ไม่ gen สด
-    if (!canTriggerGen(subStatus)) {
+    if (!isPremium(subStatus)) {
       return (
         <>
           <Navbar />
