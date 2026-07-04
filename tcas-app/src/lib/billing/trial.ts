@@ -1,5 +1,12 @@
 import type { Status } from './gating'
 
+export const TRIAL_DAYS = 7
+
+// trial_ends_at ตอน signup — บ้านเดียวกับ trialDaysLeft/downgradeTarget (concept "trial" เดียวกัน)
+export function trialEndsAt(from: Date): string {
+  return new Date(from.getTime() + TRIAL_DAYS * 864e5).toISOString()
+}
+
 export function downgradeTarget(
   sub: { status: Status; trialEndsAt: string | null },
   now: Date
