@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>TCAS · รอบ 6 — เข้าสู่ระบบ · ห้องสอบ · สถานะพัง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF7F0; --paper-2:#F3EEE2; --paper-3:#EAE3D2;
+  --ink:#2B2A26; --ink-2:#6E675A; --ink-3:#9C9483;
+  --pen:#27567F; --pen-soft:#E3EDF6;
+  --mark:#FFE486; --ruled:#DCE4EC;
+  --right:#2E7A50; --right-soft:#E4F1E8;
+  --wrong:#B2453B; --wrong-soft:#F8E6E3;
+  --warm:#F0A030; --warm-soft:#FDF0DC;
+  --r:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(43,42,38,.06), 0 8px 24px -12px rgba(43,42,38,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Sarabun',system-ui,sans-serif;background:#DFD9CC;color:var(--ink);
+  display:flex;align-items:flex-start;justify-content:center;padding:26px 16px 120px}
+.frame{width:var(--dev,390px);height:820px;max-height:calc(100vh - 56px);background:var(--paper);
+  border-radius:22px;overflow-y:auto;overflow-x:hidden;position:relative;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.35);border:1px solid rgba(43,42,38,.12);scrollbar-width:thin}
+.screen{min-height:100%;display:flex;flex-direction:column}
+
+/* ── เปลือก (ล็อก) ─────────────────────────────────────────── */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(250,247,240,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--paper-3);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.brand{font-weight:700;letter-spacing:-.2px}
+.brand small{color:var(--ink-3);font-weight:500}
+.spacer{flex:1}
+.quota{font-size:12.5px;color:var(--pen);background:var(--pen-soft);padding:4px 10px;
+  border-radius:999px;font-weight:600;white-space:nowrap}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--paper-3);display:grid;
+  place-items:center;font-size:12px;font-weight:600;color:var(--ink-2);flex:none}
+.tabs{position:sticky;bottom:0;z-index:20;margin-top:auto;background:rgba(250,247,240,.96);
+  backdrop-filter:blur(8px);border-top:1px solid var(--paper-3);display:grid;
+  grid-template-columns:repeat(4,1fr);padding:6px 4px 8px}
+.tab{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:5px 2px;color:var(--ink-3);font-size:11px;font-family:inherit}
+.tab .ic{font-size:17px;line-height:1}
+.tab.on{color:var(--pen);font-weight:600}
+main{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* ── การ์ด / ปุ่ม ───────────────────────────────────────────── */
+.card{background:#fff;border:1px solid var(--paper-3);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:18px 16px}
+.card.flat{background:var(--paper-2);box-shadow:none}
+.card.warm{background:var(--warm-soft);border-color:#F0DDBC;box-shadow:none}
+.card.pen{background:var(--pen-soft);border-color:#D3E2EF;box-shadow:none}
+.btn{font-family:inherit;font-size:15px;font-weight:600;border-radius:var(--r-sm);padding:13px 18px;
+  cursor:pointer;border:1.5px solid transparent;transition:.14s}
+.btn.primary{background:var(--pen);color:#fff}
+.btn.ghost{background:transparent;border-color:var(--paper-3);color:var(--ink-2)}
+.btn.warm{background:var(--warm);color:#3B2A08}
+.btn.full{width:100%}
+.btn.sm{font-size:13.5px;padding:9px 13px}
+.btn.lg{font-size:16px;padding:15px 20px}
+.btnrow{display:flex;gap:10px}
+h1.t{font-size:24px;letter-spacing:-.4px}
+h2.t{font-size:21px;letter-spacing:-.3px}
+h3.t{font-size:16.5px}
+.lead{font-size:14px;line-height:1.66;color:var(--ink-2)}
+.sec{font-size:12.5px;font-weight:600;color:var(--ink-3);letter-spacing:.4px}
+.hint{font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.6}
+.pill{font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--paper-2);color:var(--ink-2);font-weight:500}
+.pill.goal{background:var(--pen-soft);color:var(--pen);font-weight:600}
+.pill.mark{background:var(--mark);color:#5A4A10;font-weight:600}
+.pill.on{background:var(--right-soft);color:var(--right);font-weight:600}
+.stick{position:sticky;bottom:0;margin:auto -16px -16px;padding:13px 16px 16px;
+  background:rgba(250,247,240,.97);backdrop-filter:blur(8px);border-top:1px solid var(--paper-3)}
+.link{color:var(--pen);font-weight:600;font-size:13.5px;background:none;border:0;
+  font-family:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ── หน้าเข้าสู่ระบบ ────────────────────────────────────────── */
+.auth{flex:1;display:flex;flex-direction:column;padding:32px 22px 24px;gap:16px}
+.auth.mid{justify-content:center}
+.logo{width:52px;height:52px;border-radius:15px;background:var(--pen);color:#fff;display:grid;
+  place-items:center;font-size:23px;font-weight:700;letter-spacing:-1px}
+.auth h1{font-size:26px;letter-spacing:-.5px;line-height:1.3}
+.auth .sub{font-size:14.5px;line-height:1.65;color:var(--ink-2)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.input{font-family:inherit;font-size:15.5px;padding:13px 14px;border-radius:var(--r-sm);
+  border:1.5px solid var(--paper-3);background:#fff;color:var(--ink);width:100%}
+.input.focus{border-color:var(--pen);box-shadow:0 0 0 3px var(--pen-soft)}
+.input::placeholder{color:var(--ink-3)}
+.inputwrap{display:flex;gap:8px;align-items:stretch}
+.prefix{display:grid;place-items:center;padding:0 13px;border:1.5px solid var(--paper-3);
+  border-radius:var(--r-sm);background:var(--paper-2);font-size:15px;color:var(--ink-2);flex:none}
+.oauth{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;
+  border:1.5px solid var(--paper-3);border-radius:var(--r-sm);padding:14px;font-family:inherit;
+  font-size:15px;font-weight:600;cursor:pointer;color:var(--ink);box-shadow:var(--shadow)}
+.oauth .g{width:20px;height:20px;border-radius:50%;background:conic-gradient(#EA4335 0 25%,#FBBC05 0 50%,#34A853 0 75%,#4285F4 0);flex:none}
+.or{display:flex;align-items:center;gap:12px;color:var(--ink-3);font-size:12.5px}
+.or::before,.or::after{content:'';flex:1;height:1px;background:var(--paper-3)}
+.authtabs{display:grid;grid-template-columns:1fr 1fr;background:var(--paper-2);border-radius:var(--r-sm);padding:4px;gap:4px}
+.authtabs button{font-family:inherit;font-size:14px;font-weight:600;padding:9px;border:0;border-radius:7px;
+  background:transparent;color:var(--ink-3);cursor:pointer}
+.authtabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(43,42,38,.12)}
+.legal{font-size:11.5px;color:var(--ink-3);line-height:1.6;text-align:center}
+.legal u{text-decoration-color:var(--paper-3)}
+.checkrow{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-2);line-height:1.55}
+.checkrow .bx{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--pen);background:var(--pen);
+  color:#fff;display:grid;place-items:center;font-size:12px;flex:none;margin-top:1px}
+
+/* ── OTP ────────────────────────────────────────────────────── */
+.otp{display:flex;gap:8px;justify-content:space-between}
+.otp i{flex:1;aspect-ratio:1/1.15;border:1.5px solid var(--paper-3);border-radius:var(--r-sm);
+  background:#fff;display:grid;place-items:center;font-size:24px;font-weight:600;font-style:normal;
+  font-variant-numeric:tabular-nums}
+.otp i.filled{border-color:var(--ink-3)}
+.otp i.cur{border-color:var(--pen);box-shadow:0 0 0 3px var(--pen-soft)}
+.sentto{background:var(--paper-2);border-radius:var(--r-sm);padding:11px 13px;font-size:13px;
+  color:var(--ink-2);display:flex;align-items:center;gap:9px}
+.sentto b{font-weight:600;color:var(--ink)}
+
+/* ── บัญชี Google (mock chooser) ────────────────────────────── */
+.gaccount{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--paper-3);
+  width:100%;background:none;border-left:0;border-right:0;border-top:0;font-family:inherit;text-align:left;cursor:pointer}
+.gaccount:last-of-type{border-bottom:0}
+.gaccount .av{width:36px;height:36px;border-radius:50%;background:var(--pen);color:#fff;display:grid;
+  place-items:center;font-weight:600;font-size:14px;flex:none}
+.gaccount b{display:block;font-size:14.5px;font-weight:600}
+.gaccount span{font-size:12.5px;color:var(--ink-3)}
+
+/* ── ห้องสนามสอบ ───────────────────────────────────────────── */
+.codebox{display:flex;gap:7px;justify-content:center}
+.codebox i{width:38px;height:48px;border:1.5px solid var(--paper-3);border-radius:var(--r-sm);
+  background:#fff;display:grid;place-items:center;font-size:21px;font-weight:700;font-style:normal;
+  letter-spacing:0}
+.codebox i.cur{border-color:var(--pen);box-shadow:0 0 0 3px var(--pen-soft)}
+.bigcode{font-size:31px;font-weight:700;letter-spacing:5px;text-align:center;
+  font-variant-numeric:tabular-nums;color:var(--pen)}
+.members{display:flex;flex-direction:column;gap:2px}
+.member{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--paper-3)}
+.member:last-child{border-bottom:0}
+.member .av{width:34px;height:34px;border-radius:50%;background:var(--paper-2);color:var(--ink-2);
+  display:grid;place-items:center;font-size:13px;font-weight:600;flex:none}
+.member .av.me{background:var(--pen);color:#fff}
+.member b{flex:1;font-size:14.5px;font-weight:500}
+.member .st{font-size:12px;color:var(--ink-3)}
+.member .st.done{color:var(--right);font-weight:600}
+.avstack{display:flex}
+.avstack .av{width:32px;height:32px;border-radius:50%;background:var(--paper-2);color:var(--ink-2);
+  display:grid;place-items:center;font-size:12px;font-weight:600;border:2px solid var(--paper);margin-left:-9px}
+.avstack .av:first-child{margin-left:0}
+.share{display:flex;align-items:center;gap:11px;background:var(--paper-2);border-radius:var(--r-sm);
+  padding:11px 13px;font-size:13px;color:var(--ink-2)}
+.share code{flex:1;font-family:inherit;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roomrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--paper-3)}
+.roomrow:last-child{border-bottom:0}
+.roomrow b{flex:1;font-size:14.5px;font-weight:500}
+.roomrow b span{display:block;font-size:12px;color:var(--ink-3);font-weight:400;margin-top:2px}
+
+/* ── สถานะพัง ──────────────────────────────────────────────── */
+.state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 24px;gap:14px;text-align:center}
+.state .glyph{font-size:46px;line-height:1;opacity:.75}
+.state h2{font-size:21px;letter-spacing:-.3px}
+.state .lead{text-align:center;max-width:300px}
+.bignum{font-size:74px;font-weight:700;letter-spacing:-3px;color:var(--paper-3);line-height:.9}
+.notice{display:flex;align-items:center;gap:11px;background:var(--warm-soft);border:1px solid #F0DDBC;
+  border-radius:var(--r-sm);padding:11px 13px;font-size:13px;color:#7A5A18;line-height:1.5}
+.notice.bad{background:var(--wrong-soft);border-color:#EBD0CC;color:var(--wrong)}
+.offlinebar{position:sticky;top:0;z-index:25;background:var(--ink);color:#F3EEE2;font-size:12.5px;
+  padding:8px 16px;display:flex;align-items:center;gap:8px}
+.dotpulse{width:7px;height:7px;border-radius:50%;background:var(--warm);flex:none}
+.errcode{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);
+  background:var(--paper-2);padding:4px 9px;border-radius:6px;display:inline-block}
+.qsave{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
+
+/* ── ตัวเลือกดีไซน์ ─────────────────────────────────────────── */
+#picker{position:fixed;right:18px;bottom:18px;z-index:999;width:300px;background:#25231F;
+  color:#EDE8DE;border-radius:14px;padding:12px 13px 13px;box-shadow:0 20px 50px -12px rgba(0,0,0,.55);
+  font-size:12.5px;user-select:none}
+#picker .head{display:flex;align-items:center;gap:8px;cursor:grab;margin-bottom:10px}
+#picker .head b{font-size:13px;flex:1}
+#picker .arrow{width:26px;height:26px;border-radius:7px;border:1px solid #4A463E;background:#332F29;
+  color:#EDE8DE;cursor:pointer;font-size:13px;line-height:1}
+#picker .name{font-size:14.5px;font-weight:700;margin-bottom:3px}
+#picker .desc{color:#A79F91;line-height:1.55;margin-bottom:11px;font-size:11.8px;min-height:48px}
+#picker .row{margin-bottom:9px}
+#picker .row > label{display:block;color:#8E877B;font-size:10.5px;letter-spacing:.5px;margin-bottom:5px}
+#picker .chips{display:flex;flex-wrap:wrap;gap:5px}
+#picker .chip{border:1px solid #45413A;background:#332F29;color:#CFC8BB;border-radius:7px;
+  padding:5px 9px;cursor:pointer;font-family:inherit;font-size:11.5px}
+#picker .chip.on{background:#EDE8DE;color:#25231F;border-color:#EDE8DE;font-weight:600}
+</style>
+</head>
+<body style="--dev:390px">
+
+<div class="frame"><div class="screen" id="app"></div></div>
+
+<div id="picker">
+  <div class="head" id="drag">
+    <b>รอบ 6 · เข้าระบบ + ห้อง + พัง</b>
+    <button class="arrow" onclick="cycle(-1)">←</button>
+    <button class="arrow" onclick="cycle(1)">→</button>
+  </div>
+  <div class="name" id="pName"></div>
+  <div class="desc" id="pDesc"></div>
+  <div class="row"><label>ดีไซน์</label><div class="chips" id="cV"></div></div>
+  <div class="row"><label>หน้าจอ</label><div class="chips" id="cP"></div></div>
+  <div class="row" style="margin-bottom:0"><label>อุปกรณ์</label><div class="chips" id="cD"></div></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   ล็อกแล้ว: Paper&Pencil · การ์ด+แท็บล่าง · โหมดโฟกัสตอนสอบ
+             หน้าหลัก = ทำต่อจากที่ค้าง + แถบโอกาสติด
+             ผู้ใช้ใหม่ = ทำโจทย์เลย ถามคณะหลังครบ 10 ข้อ
+             อัปเกรด = การ์ดราคาเรียงลง · โควตาหมด = มีทางออกคือทบทวนข้อผิด
+   รอบ 6 ต่างกันที่: เข้าใช้งานยังไง · เข้าห้องเพื่อนยังไง · ตอนพังบอกอะไร
+   ════════════════════════════════════════════════════════════ */
+
+const VARIANTS = [
+  { id:'guest', name:'A · ลองก่อนค่อยสมัคร',
+    desc:'เปิดแอปมาทำโจทย์ได้เลยโดยไม่ต้องมีบัญชี · ค่อยขอให้สมัครตอนที่มีผลจะเสียดาย · เข้าห้องเพื่อนด้วยรหัสกับชื่อเล่น' },
+  { id:'google', name:'B · Google ปุ่มเดียว',
+    desc:'หน้าเข้าระบบมีปุ่มเดียวจบ ไม่มีฟอร์มไม่มีรหัสผ่าน · ชื่อกับรูปดึงจาก Google · เวลาพังบอกสั้นที่สุดแล้วให้ปุ่มเดียว' },
+  { id:'form', name:'C · อีเมล + รหัสผ่าน',
+    desc:'ฟอร์มมาตรฐาน มีแท็บเข้าสู่ระบบกับสมัครสมาชิก ลืมรหัสผ่านได้ · เข้าห้องผ่านฟอร์มกรอกรหัส · เวลาพังแสดงรหัสข้อผิดพลาดให้แจ้งได้' },
+  { id:'otp', name:'D · รหัส 6 หลักทางอีเมล',
+    desc:'ไม่มีรหัสผ่านให้ลืม กรอกอีเมลแล้วรับรหัส 6 หลัก · เชิญเพื่อนเข้าห้องด้วยลิงก์ทางอีเมล · เวลาพังเน้นว่างานยังไม่หาย' },
+  { id:'phone', name:'E · เบอร์โทร + OTP',
+    desc:'เด็กหลายคนไม่ได้เช็กอีเมล ใช้เบอร์กับ SMS แทน · แชร์ลิงก์ห้องผ่านแอปแชท · เวลาพังใช้ภาษาพูดตรงไปตรงมา' },
+];
+const PAGES = [
+  { id:'signin',  label:'เข้าใช้งาน'  },
+  { id:'verify',  label:'ยืนยันตัวตน' },
+  { id:'room',    label:'ห้องสอบ'     },
+  { id:'offline', label:'เน็ตหลุด'    },
+  { id:'err',     label:'หน้าเสีย'    },
+];
+const DEVS = [['390px','มือถือ 390'],['834px','iPad 834'],['1200px','Desktop']];
+const S = { v:'guest', page:'signin', dev:'390px' };
+
+const BASE = {
+  signH:'เข้าสู่ระบบ',
+  signP:'ฝึกโจทย์ TCAS ที่ปรับความยากตามผลของคุณเอง',
+  signBtn:'เข้าสู่ระบบ',
+  vH:'ยืนยันตัวตน',
+  vP:'อีกขั้นเดียวก็เริ่มได้',
+  vBtn:'ยืนยัน',
+  roomH:'สนามสอบร่วม',
+  roomP:'ทำชุดเดียวกันกับเพื่อน ใครจะทำเมื่อไรก็ได้ แล้วค่อยมาดูผลเทียบกัน',
+  joinBtn:'เข้าห้อง',
+  offH:'ไม่ได้เชื่อมต่ออินเทอร์เน็ต',
+  offP:'ตรวจสอบสัญญาณแล้วลองอีกครั้ง',
+  offBtn:'ลองใหม่',
+  errH:'ไม่พบหน้านี้',
+  errP:'หน้าที่คุณเปิดอาจถูกย้ายหรือลบไปแล้ว',
+  errBtn:'กลับหน้าหลัก',
+};
+const COPY = {
+  guest: { signH:'เริ่มทำโจทย์ได้เลย', signP:'ไม่ต้องสมัคร ไม่ต้องกรอกอะไร กดแล้วเริ่มข้อแรกได้ทันที',
+           signBtn:'เริ่มข้อแรก',
+           vH:'เก็บผลของคุณไว้', vP:'คุณทำไปแล้ว 12 ข้อ สมัครบัญชีเพื่อไม่ให้ผลหายเมื่อเปลี่ยนเครื่องหรือล้างข้อมูลเบราว์เซอร์',
+           vBtn:'สมัครด้วยอีเมล',
+           roomP:'ใส่รหัสห้องที่เพื่อนส่งมาแล้วเข้าได้เลย ยังไม่ต้องมีบัญชีก็ได้',
+           offH:'เน็ตหลุด แต่ยังทำต่อได้', offP:'โจทย์ที่โหลดไว้แล้วยังเหลืออีก 4 ข้อ คำตอบจะถูกส่งให้อัตโนมัติเมื่อกลับมาออนไลน์',
+           offBtn:'ทำข้อถัดไป' },
+  google:{ signH:'TCAS Practice', signP:'ฝึกโจทย์ที่ปรับให้ตรงกับจุดอ่อนของคุณ',
+           signBtn:'ดำเนินการต่อด้วย Google',
+           vH:'เลือกบัญชี', vP:'เลือกบัญชี Google ที่ต้องการใช้กับ TCAS Practice',
+           roomP:'ทำชุดเดียวกันกับเพื่อน แล้วดูผลเทียบกัน',
+           offP:'ลองใหม่อีกครั้ง',
+           errP:'' },
+  form:  { signP:'ยินดีต้อนรับกลับมา กรอกข้อมูลเพื่อเข้าใช้งาน',
+           vH:'สมัครสมาชิก', vP:'กรอกข้อมูลให้ครบเพื่อสร้างบัญชีใหม่', vBtn:'สร้างบัญชี',
+           roomP:'กรอกรหัสห้อง 6 ตัวที่ได้รับ หรือเลือกจากห้องที่เคยเข้า',
+           offH:'เชื่อมต่อไม่สำเร็จ', offP:'ระบบไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้ หากยังพบปัญหาโปรดแจ้งทีมงานพร้อมรหัสด้านล่าง',
+           errP:'ที่อยู่ที่ระบุไม่ตรงกับหน้าใดในระบบ' },
+  otp:   { signH:'เข้าใช้งานด้วยอีเมล', signP:'ไม่ต้องตั้งรหัสผ่าน เราจะส่งรหัส 6 หลักไปให้ทางอีเมล',
+           signBtn:'ส่งรหัสให้',
+           vH:'กรอกรหัส 6 หลัก', vP:'ตรวจในกล่องจดหมาย รหัสมีอายุ 10 นาที', vBtn:'เข้าใช้งาน',
+           roomP:'สร้างห้องแล้วส่งลิงก์ให้เพื่อนทางอีเมล หรือเข้าห้องด้วยรหัส',
+           offH:'การเชื่อมต่อขาดหาย', offP:'คำตอบที่ทำไว้ถูกเก็บในเครื่องเรียบร้อยแล้ว ระบบจะส่งให้เองเมื่อกลับมาออนไลน์' },
+  phone: { signH:'เข้าใช้งานด้วยเบอร์โทร', signP:'กรอกเบอร์ที่ใช้อยู่ เราจะส่งรหัสไปทาง SMS',
+           signBtn:'ส่งรหัสทาง SMS',
+           vH:'กรอกรหัสจาก SMS', vP:'รหัสถูกส่งไปที่เบอร์ของคุณแล้ว', vBtn:'เข้าใช้งาน',
+           roomP:'สร้างห้องแล้วส่งลิงก์ให้เพื่อนทางแชท กดลิงก์แล้วเข้าห้องได้เลย',
+           offH:'เน็ตหลุดแล้ว', offP:'เช็กสัญญาณหรือเปลี่ยนไปใช้ไวไฟดูก่อน แล้วค่อยกดลองใหม่',
+           errH:'ไม่มีหน้านี้', errP:'ลิงก์ที่กดมาอาจพิมพ์ผิดหรือหมดอายุแล้ว' },
+};
+const T = k => (COPY[S.v]||{})[k] ?? BASE[k];
+
+/* ── ชิ้นส่วนร่วม ───────────────────────────────────────────── */
+const topbar = (show=true) => `<div class="topbar">
+  <div class="brand">TCAS <small>Practice</small></div><div class="spacer"></div>
+  ${show?`<div class="quota">เหลือวันนี้ 7 ข้อ</div><div class="avatar">ZN</div>`:''}</div>`;
+
+const tabs = a => { const it=[['▤','หน้าหลัก','home'],['✎','ฝึกโจทย์','practice'],['⚑','สนามสอบ','social'],['◍','บัญชี','account']];
+  return `<div class="tabs">${it.map(([i,l,id])=>
+    `<button class="tab${id===a?' on':''}"><span class="ic">${i}</span>${l}</button>`).join('')}</div>`; };
+
+const legal = () => `<div class="legal">การใช้งานถือว่ายอมรับ <u>เงื่อนไขการใช้บริการ</u> และ <u>นโยบายความเป็นส่วนตัว</u></div>`;
+
+const gbtn = (label='ดำเนินการต่อด้วย Google') => `<button class="oauth"><span class="g"></span>${label}</button>`;
+
+const otpBoxes = (f='4 8 2') => { const d=f.split(' ');
+  return `<div class="otp">${[0,1,2,3,4,5].map(i=>
+    `<i class="${d[i]?'filled':(i===d.length?'cur':'')}">${d[i]||''}</i>`).join('')}</div>`; };
+
+const membersList = (opts={}) => { const m = opts.g
+  ? [['ณ','ณัฐวุฒิ (คุณ)','ทำแล้ว 40/40','done',1],['ป','ปาริชาต','ทำแล้ว 40/40','done',0],
+     ['ธ','ธนกฤต','กำลังทำ 22/40','',0],['ม','มนัสนันท์','ยังไม่เริ่ม','',0]]
+  : [['ZN','เซน (คุณ)','ทำแล้ว 40/40','done',1],['ป','ปาล์ม','ทำแล้ว 40/40','done',0],
+     ['ก','ก้อง','กำลังทำ 22/40','',0],['ม','มายด์','ยังไม่เริ่ม','',0]];
+  return `<div class="members">${m.map(([a,n,s,c,me])=>
+    `<div class="member"><span class="av${me?' me':''}">${a}</span><b>${n}</b><span class="st ${c}">${s}</span></div>`).join('')}</div>`; };
+
+/* ── หน้าจอ ─────────────────────────────────────────────────── */
+const R = {
+
+/* ══ เข้าใช้งาน ═══════════════════════════════════════════════ */
+signin(){
+  const V = S.v;
+  let body = '';
+
+  if(V==='guest') body = `
+    <div class="logo">T</div>
+    <div><h1>${T('signH')}</h1>
+      <div class="sub" style="margin-top:9px">${T('signP')}</div></div>
+    <div class="card flat" style="padding:15px">
+      <div class="qsave"><span style="font-size:17px">✎</span>
+        <div>ทำโจทย์แรกได้ทันที ผลจะเก็บไว้ในเครื่องนี้ก่อน<br>ค่อยสมัครทีหลังเพื่อไม่ให้หาย</div></div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="btn primary full lg">${T('signBtn')}</button>
+    <button class="link" style="align-self:center">เคยสมัครไว้แล้ว · เข้าสู่ระบบ</button>
+    ${legal()}`;
+
+  if(V==='google') body = `
+    <div style="flex:1"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+      <div class="logo" style="width:64px;height:64px;font-size:28px">T</div>
+      <div><h1>${T('signH')}</h1>
+        <div class="sub" style="margin-top:8px">${T('signP')}</div></div>
+    </div>
+    <div style="flex:1"></div>
+    ${gbtn(T('signBtn'))}
+    ${legal()}`;
+
+  if(V==='form') body = `
+    <div class="logo">T</div>
+    <div><h1>${T('signH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('signP')}</div></div>
+    <div class="authtabs"><button class="on">เข้าสู่ระบบ</button><button>สมัครสมาชิก</button></div>
+    <div class="field"><label>อีเมล</label>
+      <input class="input" value="zen@example.com"></div>
+    <div class="field"><label>รหัสผ่าน</label>
+      <input class="input focus" type="password" value="············"></div>
+    <button class="link" style="align-self:flex-end;font-size:12.5px">ลืมรหัสผ่าน</button>
+    <button class="btn primary full lg">${T('signBtn')}</button>
+    <div class="or">หรือ</div>
+    ${gbtn()}
+    ${legal()}`;
+
+  if(V==='otp') body = `
+    <div class="logo">T</div>
+    <div><h1>${T('signH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('signP')}</div></div>
+    <div class="field" style="margin-top:4px"><label>อีเมล</label>
+      <input class="input focus" placeholder="you@example.com" value="zen@example.com"></div>
+    <button class="btn primary full lg">${T('signBtn')}</button>
+    <div class="or">หรือ</div>
+    ${gbtn()}
+    <div style="flex:1"></div>
+    ${legal()}`;
+
+  if(V==='phone') body = `
+    <div class="logo">T</div>
+    <div><h1>${T('signH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('signP')}</div></div>
+    <div class="field" style="margin-top:4px"><label>เบอร์โทรศัพท์</label>
+      <div class="inputwrap"><span class="prefix">+66</span>
+        <input class="input focus" placeholder="8X XXX XXXX" value="81 234 5678"></div></div>
+    <div class="hint" style="text-align:left">ค่าบริการ SMS เป็นไปตามผู้ให้บริการของคุณ</div>
+    <button class="btn primary full lg">${T('signBtn')}</button>
+    <div class="or">หรือ</div>
+    ${gbtn()}
+    <div style="flex:1"></div>
+    ${legal()}`;
+
+  return `<div class="auth">${body}</div>`;
+},
+
+/* ══ ยืนยันตัวตน ══════════════════════════════════════════════ */
+verify(){
+  const V = S.v;
+  let body = '';
+
+  if(V==='guest') body = `
+    <div class="pill mark" style="align-self:flex-start">ทำไปแล้ว 12 ข้อ</div>
+    <div><h1>${T('vH')}</h1>
+      <div class="sub" style="margin-top:9px">${T('vP')}</div></div>
+    <div class="card" style="padding:15px 16px">
+      <div class="sec" style="margin-bottom:9px">สิ่งที่จะหายถ้าไม่สมัคร</div>
+      <div class="qsave" style="margin-bottom:8px"><span>•</span><div>ความแม่น 68% จาก 12 ข้อที่ทำมา</div></div>
+      <div class="qsave" style="margin-bottom:8px"><span>•</span><div>ข้อที่ตอบผิดไว้ทบทวน 4 ข้อ</div></div>
+      <div class="qsave"><span>•</span><div>ระดับความยากที่ระบบปรับให้แล้ว</div></div>
+    </div>
+    <div style="flex:1"></div>
+    ${gbtn('สมัครด้วย Google')}
+    <button class="btn ghost full">${T('vBtn')}</button>
+    <button class="link" style="align-self:center">ไว้ทีหลัง</button>`;
+
+  if(V==='google') body = `
+    <div><h1>${T('vH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('vP')}</div></div>
+    <div class="card" style="padding:6px 16px">
+      <button class="gaccount"><span class="av">ZN</span>
+        <div><b>เซน</b><span>student@example.com</span></div></button>
+      <button class="gaccount"><span class="av" style="background:var(--paper-3);color:var(--ink-2)">ก</span>
+        <div><b>บัญชีโรงเรียน</b><span>student@school.ac.th</span></div></button>
+      <button class="gaccount"><span class="av" style="background:var(--paper-2);color:var(--ink-3)">+</span>
+        <div><b>ใช้บัญชีอื่น</b><span>เพิ่มบัญชี Google</span></div></button>
+    </div>
+    <div class="hint">TCAS Practice จะเห็นชื่อ อีเมล และรูปโปรไฟล์ของคุณ</div>
+    <div style="flex:1"></div>
+    ${legal()}`;
+
+  if(V==='form') body = `
+    <div><h1>${T('vH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('vP')}</div></div>
+    <div class="authtabs"><button>เข้าสู่ระบบ</button><button class="on">สมัครสมาชิก</button></div>
+    <div class="field"><label>ชื่อที่ใช้แสดง</label><input class="input" value="เซน"></div>
+    <div class="field"><label>อีเมล</label><input class="input" value="zen@example.com"></div>
+    <div class="field"><label>รหัสผ่าน</label>
+      <input class="input focus" type="password" value="············">
+      <div class="hint" style="text-align:left">อย่างน้อย 8 ตัวอักษร มีตัวเลขอย่างน้อย 1 ตัว</div></div>
+    <div class="field"><label>ระดับชั้น</label><input class="input" value="ม.6"></div>
+    <div class="checkrow"><span class="bx">✓</span>
+      <div>ยอมรับเงื่อนไขการใช้บริการและนโยบายความเป็นส่วนตัว</div></div>
+    <button class="btn primary full lg">${T('vBtn')}</button>`;
+
+  if(V==='otp') body = `
+    <div><h1>${T('vH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('vP')}</div></div>
+    <div class="sentto"><span style="font-size:16px">✉</span>
+      <div>ส่งไปที่ <b>zen@example.com</b></div>
+      <button class="link" style="font-size:12.5px">แก้ไข</button></div>
+    ${otpBoxes('4 8 2')}
+    <button class="btn primary full lg">${T('vBtn')}</button>
+    <div class="hint">ยังไม่ได้รับรหัส · ส่งใหม่ได้ในอีก 42 วินาที</div>
+    <div style="flex:1"></div>
+    <div class="hint">ตรวจในโฟลเดอร์จดหมายขยะด้วย บางครั้งรหัสไปตกอยู่ที่นั่น</div>`;
+
+  if(V==='phone') body = `
+    <div><h1>${T('vH')}</h1>
+      <div class="sub" style="margin-top:8px">${T('vP')}</div></div>
+    <div class="sentto"><span style="font-size:16px">✆</span>
+      <div>ส่งไปที่ <b>+66 81 234 5678</b></div>
+      <button class="link" style="font-size:12.5px">แก้ไข</button></div>
+    ${otpBoxes('4 8 2 9')}
+    <button class="btn primary full lg">${T('vBtn')}</button>
+    <div class="hint">ยังไม่ได้รับรหัส · ส่งใหม่ได้ในอีก 42 วินาที</div>
+    <div style="flex:1"></div>
+    <div class="notice"><span style="font-size:16px">◔</span>
+      <div>ถ้ารอเกิน 2 นาทีแล้วยังไม่มา ลองเช็กว่าเบอร์ถูกต้องหรือใช้อีเมลแทน</div></div>`;
+
+  return `<div class="auth">${body}</div>`;
+},
+
+/* ══ ห้องสนามสอบ ══════════════════════════════════════════════ */
+room(){
+  const V = S.v;
+  let body = '';
+
+  if(V==='guest') body = `
+    <div><h2 class="t">${T('roomH')}</h2>
+      <div class="lead" style="margin-top:6px">${T('roomP')}</div></div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:11px">รหัสห้อง</div>
+      <div class="codebox"><i>4</i><i>K</i><i>Q</i><i class="cur">2</i><i></i><i></i></div>
+      <div class="field" style="margin-top:15px"><label>ชื่อที่จะให้เพื่อนเห็น</label>
+        <input class="input" value="เซน"></div>
+      <button class="btn primary full" style="margin-top:13px">${T('joinBtn')}</button>
+      <div class="hint" style="margin-top:10px">ยังไม่มีบัญชีก็เข้าได้ ผลจะเก็บในเครื่องนี้</div>
+    </div>
+    <div class="card flat">
+      <div class="sec" style="margin-bottom:8px">หรือชวนเพื่อนเอง</div>
+      <button class="btn ghost full sm">สร้างห้องใหม่</button>
+    </div>`;
+
+  if(V==='google') body = `
+    <div style="display:flex;align-items:center;gap:12px">
+      <div><h2 class="t">ห้อง 4KQ2ZP</h2>
+        <div class="lead" style="margin-top:4px;font-size:13px">ชุดคณิต 40 ข้อ · ปิดรับผล 20:00 น.</div></div>
+      <div class="spacer"></div>
+      <div class="avstack"><span class="av" style="background:var(--pen);color:#fff">ณ</span>
+        <span class="av">ป</span><span class="av">ธ</span><span class="av">ม</span></div>
+    </div>
+    <div class="card"><div class="sec" style="margin-bottom:4px">สมาชิก 4 คน</div>
+      ${membersList({g:1})}</div>
+    <div class="card pen">
+      <div class="lead" style="color:var(--ink)">คุณทำครบแล้ว รอเพื่อนอีก 2 คน<br>ผลเทียบจะเปิดให้ดูเมื่อครบทุกคนหรือถึงเวลาปิดรับ</div>
+    </div>
+    <div class="stick"><button class="btn primary full lg">ดูผลของฉันก่อน</button></div>`;
+
+  if(V==='form') body = `
+    <div><h2 class="t">${T('roomH')}</h2>
+      <div class="lead" style="margin-top:6px">${T('roomP')}</div></div>
+    <div class="card">
+      <div class="field"><label>รหัสห้อง</label>
+        <input class="input focus" placeholder="เช่น 4KQ2ZP" value="4KQ2ZP"></div>
+      <button class="btn primary full" style="margin-top:13px">${T('joinBtn')}</button>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:4px">ห้องที่เคยเข้า</div>
+      <div class="roomrow"><b>ห้องติวคณิต ม.6/2<span>4KQ2ZP · ทำครบแล้ว</span></b>
+        <span class="pill on">ดูผล</span></div>
+      <div class="roomrow"><b>อ่านด้วยกันคืนนี้<span>9XBT1M · ยังไม่เริ่ม</span></b>
+        <span class="pill">เข้า</span></div>
+      <div class="roomrow"><b>ซ้อมฟิสิกส์<span>2PLQ7C · ปิดแล้ว</span></b>
+        <span class="pill">ดูผล</span></div>
+    </div>
+    <div class="card flat"><button class="btn ghost full sm">สร้างห้องใหม่</button></div>`;
+
+  if(V==='otp') body = `
+    <div><h2 class="t">ห้องของคุณ</h2>
+      <div class="lead" style="margin-top:6px">${T('roomP')}</div></div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:9px;text-align:center">รหัสห้อง</div>
+      <div class="bigcode">4KQ2ZP</div>
+      <div class="share" style="margin-top:14px"><span style="font-size:15px">🔗</span>
+        <code>tcas.app/r/4KQ2ZP</code>
+        <button class="link" style="font-size:12.5px">คัดลอก</button></div>
+      <div class="btnrow" style="margin-top:11px">
+        <button class="btn ghost sm" style="flex:1">ส่งทางอีเมล</button>
+        <button class="btn ghost sm" style="flex:1">แชร์ลิงก์</button></div>
+    </div>
+    <div class="card"><div class="sec" style="margin-bottom:4px">เชิญไว้ 4 คน · เข้าแล้ว 3</div>
+      ${membersList()}</div>
+    <div class="stick"><button class="btn primary full lg">เริ่มทำชุดนี้</button></div>`;
+
+  if(V==='phone') body = `
+    <div><h2 class="t">ชวนเพื่อนมาซ้อม</h2>
+      <div class="lead" style="margin-top:6px">${T('roomP')}</div></div>
+    <div class="card pen" style="text-align:center">
+      <div class="sec" style="margin-bottom:7px">ห้อง 4KQ2ZP</div>
+      <div class="lead" style="color:var(--ink)">ชุดคณิต 40 ข้อ · ทำเมื่อไรก็ได้ก่อน 20:00 น.</div>
+      <button class="btn primary full lg" style="margin-top:14px">ส่งลิงก์ให้เพื่อนทางแชท</button>
+      <button class="link" style="margin-top:11px">คัดลอกลิงก์แทน</button>
+    </div>
+    <div class="card"><div class="sec" style="margin-bottom:4px">ในห้องตอนนี้</div>
+      ${membersList()}</div>
+    <div class="stick"><button class="btn primary full lg">เริ่มทำชุดนี้</button></div>`;
+
+  return topbar(V!=='guest') + `<main>${body}</main>` + tabs('social');
+},
+
+/* ══ เน็ตหลุด ═════════════════════════════════════════════════ */
+offline(){
+  const V = S.v;
+
+  if(V==='guest') return `
+    <div class="offlinebar"><span class="dotpulse"></span>ออฟไลน์ · คำตอบจะส่งให้เองเมื่อกลับมาต่อเน็ตได้</div>
+    ${topbar(true)}
+    <main>
+      <div class="card warm">
+        <h3 class="t">${T('offH')}</h3>
+        <div class="lead" style="margin-top:7px">${T('offP')}</div>
+      </div>
+      <div class="card">
+        <div class="sec" style="margin-bottom:11px">โจทย์ที่โหลดไว้แล้ว</div>
+        <div class="roomrow"><b>พีชคณิต · ข้อ 6<span>พร้อมทำ</span></b><span class="pill on">พร้อม</span></div>
+        <div class="roomrow"><b>พีชคณิต · ข้อ 7<span>พร้อมทำ</span></b><span class="pill on">พร้อม</span></div>
+        <div class="roomrow"><b>ตรีโกณมิติ · ข้อ 8<span>พร้อมทำ</span></b><span class="pill on">พร้อม</span></div>
+        <div class="roomrow"><b>ตรีโกณมิติ · ข้อ 9<span>พร้อมทำ</span></b><span class="pill on">พร้อม</span></div>
+      </div>
+      <div class="hint">คำอธิบายวิธีคิดจะดูได้เมื่อกลับมาออนไลน์</div>
+      <div class="stick"><button class="btn primary full lg">${T('offBtn')}</button></div>
+    </main>` + tabs('practice');
+
+  if(V==='google') return `
+    <div class="state">
+      <div class="glyph">⛌</div>
+      <h2>${T('offH')}</h2>
+      <div class="lead">${T('offP')}</div>
+      <button class="btn primary lg" style="min-width:180px;margin-top:6px">${T('offBtn')}</button>
+    </div>`;
+
+  if(V==='form') return topbar(true) + `
+    <main>
+      <div style="flex:1"></div>
+      <div class="card">
+        <div class="notice bad" style="margin-bottom:14px"><span style="font-size:16px">⚠</span>
+          <div>เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ</div></div>
+        <h3 class="t">${T('offH')}</h3>
+        <div class="lead" style="margin-top:7px">${T('offP')}</div>
+        <div style="margin-top:12px"><span class="errcode">NET_ERR_TIMEOUT · 19 ส.ค. 22:14</span></div>
+        <div class="btnrow" style="margin-top:15px">
+          <button class="btn primary" style="flex:1">${T('offBtn')}</button>
+          <button class="btn ghost" style="flex:1">แจ้งปัญหา</button></div>
+      </div>
+      <div style="flex:1"></div>
+    </main>` + tabs('practice');
+
+  if(V==='otp') return `
+    <div class="offlinebar"><span class="dotpulse"></span>ออฟไลน์ · กำลังลองเชื่อมต่อใหม่</div>
+    <div class="state">
+      <div class="glyph">✎</div>
+      <h2>${T('offH')}</h2>
+      <div class="lead">${T('offP')}</div>
+      <div class="card flat" style="width:100%;max-width:320px;text-align:left;margin-top:4px">
+        <div class="qsave" style="margin-bottom:9px"><span style="color:var(--right);font-weight:700">✓</span>
+          <div>คำตอบ 5 ข้อ เก็บไว้ในเครื่องแล้ว</div></div>
+        <div class="qsave"><span style="color:var(--right);font-weight:700">✓</span>
+          <div>เวลาที่ใช้ต่อข้อ บันทึกไว้แล้ว</div></div>
+      </div>
+      <button class="btn ghost lg" style="min-width:180px;margin-top:6px">${T('offBtn')}</button>
+    </div>`;
+
+  return `
+    <div class="state">
+      <div class="glyph">📶</div>
+      <h2>${T('offH')}</h2>
+      <div class="lead">${T('offP')}</div>
+      <button class="btn primary lg" style="min-width:180px;margin-top:6px">${T('offBtn')}</button>
+      <button class="link">กลับหน้าหลัก</button>
+    </div>`;
+},
+
+/* ══ หน้าเสีย ═════════════════════════════════════════════════ */
+err(){
+  const V = S.v;
+
+  if(V==='guest') return topbar(true) + `
+    <main>
+      <div style="flex:1"></div>
+      <div style="text-align:center">
+        <h2 class="t">${T('errH')}</h2>
+        <div class="lead" style="margin-top:8px">${T('errP')}</div>
+      </div>
+      <div class="card" style="margin-top:6px">
+        <div class="sec" style="margin-bottom:10px">ไปต่อจากตรงนี้ได้</div>
+        <div class="roomrow"><b>ทำต่อจากที่ค้างไว้<span>พีชคณิต · ระดับ 3</span></b><span class="pill goal">ไป</span></div>
+        <div class="roomrow"><b>ทบทวนข้อที่เคยตอบผิด<span>4 ข้อ</span></b><span class="pill">ไป</span></div>
+      </div>
+      <div style="flex:1"></div>
+    </main>` + tabs('home');
+
+  if(V==='google') return `
+    <div class="state">
+      <h2>${T('errH')}</h2>
+      <button class="btn primary lg" style="min-width:180px;margin-top:8px">${T('errBtn')}</button>
+    </div>`;
+
+  if(V==='form') return topbar(true) + `
+    <main>
+      <div style="flex:1"></div>
+      <div class="state" style="flex:none;padding:0">
+        <div class="bignum">404</div>
+        <h2>${T('errH')}</h2>
+        <div class="lead">${T('errP')}</div>
+        <span class="errcode">/practice/set/9f2c-unknown</span>
+        <div class="btnrow" style="margin-top:8px">
+          <button class="btn primary">${T('errBtn')}</button>
+          <button class="btn ghost">แจ้งปัญหา</button></div>
+      </div>
+      <div style="flex:1"></div>
+    </main>` + tabs('home');
+
+  if(V==='otp') return `
+    <div class="state">
+      <div class="glyph">📄</div>
+      <h2>${T('errH')}</h2>
+      <div class="lead">${T('errP')}</div>
+      <div class="hint" style="margin-top:2px">ถ้ามาจากลิงก์ในอีเมล ลิงก์อาจหมดอายุแล้ว ลองขอรหัสใหม่อีกครั้ง</div>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn primary">${T('errBtn')}</button>
+        <button class="btn ghost">ขอลิงก์ใหม่</button></div>
+    </div>`;
+
+  return `
+    <div class="state">
+      <div class="glyph">🤔</div>
+      <h2>${T('errH')}</h2>
+      <div class="lead">${T('errP')}</div>
+      <button class="btn primary lg" style="min-width:180px;margin-top:6px">${T('errBtn')}</button>
+      <button class="link">ส่งลิงก์นี้ให้ทีมงานดู</button>
+    </div>`;
+},
+};
+
+/* ── เรนเดอร์ ───────────────────────────────────────────────── */
+function render(){
+  document.body.dataset.v = S.v;
+  document.body.style.setProperty('--dev', S.dev);
+  document.getElementById('app').innerHTML = R[S.page]();
+  document.querySelector('.frame').scrollTop = 0;
+  paintPicker();
+}
+function chips(el,list,cur,fn){
+  el.innerHTML = list.map(([v,l])=>`<button class="chip${v===cur?' on':''}" data-v="${v}">${l}</button>`).join('');
+  [...el.children].forEach(c=>c.onclick=()=>{ fn(c.dataset.v); render(); });
+}
+function paintPicker(){
+  const v = VARIANTS.find(x=>x.id===S.v);
+  pName.textContent = v.name; pDesc.textContent = v.desc;
+  chips(cV, VARIANTS.map(x=>[x.id,x.name.split(' · ')[0]]), S.v, x=>S.v=x);
+  chips(cP, PAGES.map(x=>[x.id,x.label]), S.page, x=>S.page=x);
+  chips(cD, DEVS, S.dev, x=>S.dev=x);
+}
+function cycle(d){
+  const i = VARIANTS.findIndex(x=>x.id===S.v);
+  S.v = VARIANTS[(i+d+VARIANTS.length)%VARIANTS.length].id;
+  render();
+}
+addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight') cycle(1);
+  if(e.key==='ArrowLeft')  cycle(-1);
+});
+(function(){
+  const p = picker, h = drag; let dx=0,dy=0,on=false;
+  h.onmousedown = e=>{ on=true; const r=p.getBoundingClientRect();
+    dx=e.clientX-r.left; dy=e.clientY-r.top; h.style.cursor='grabbing'; };
+  addEventListener('mousemove', e=>{ if(!on) return;
+    p.style.left=(e.clientX-dx)+'px'; p.style.top=(e.clientY-dy)+'px';
+    p.style.right='auto'; p.style.bottom='auto'; });
+  addEventListener('mouseup', ()=>{ on=false; h.style.cursor='grab'; });
+})();
+render();
+</script>
+</body>
+</html>

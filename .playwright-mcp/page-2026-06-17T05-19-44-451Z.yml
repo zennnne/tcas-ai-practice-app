@@ -1,6 +1,0 @@
-- main [ref=e2]:
-  - heading "Mock Exam" [level=1] [ref=e3]
-  - generic [ref=e4]:
-    - text: คณะเป้าหมาย (ไม่บังคับ)
-    - textbox "เช่น วิศวะ จุฬา" [ref=e5]
-  - button "เริ่มสอบ (10 ข้อ)" [ref=e6]

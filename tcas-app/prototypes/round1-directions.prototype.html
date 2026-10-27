@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE — TCAS AI · ทิศทางดีไซน์ทั้งเว็บ (รอบ 1)</title>
+<!--
+  PROTOTYPE — THROWAWAY. ห้าม merge เข้า production
+  คำถามของรอบนี้: "ทั้งเว็บควรมีทิศทางดีไซน์ + น้ำเสียงข้อความแบบไหน"
+  5 ทิศทางที่ต่างกันแบบคนละเรื่อง สลับด้วยลูกศร ←/→ หรือ picker มุมขวาล่าง (ลากได้)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;600;700&family=Kanit:wght@300;400;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=Noto+Serif+Thai:wght@400;600;700&family=Sarabun:wght@200;300;400;600&family=Mali:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   0. RESET + TOKENS (ค่า default = ดีไซน์ปัจจุบัน Paper & Pencil)
+   ══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+body, h1, h2, h3, p, ul, figure { margin: 0; padding: 0; }
+ul { list-style: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+input { font: inherit; }
+
+:root {
+  --paper:#FBFAF6; --panel:#F3EFE6; --ruled:#E7E1D4;
+  --ink:#18223B; --soft:#5C6479; --accent:#2F5BFF; --accent2:#1E40AF;
+  --mark:#FFDC4A; --good:#166534; --bad:#DC2626; --graphite:#C7C0B0;
+  --font:'Bai Jamjuree',system-ui,sans-serif;
+  --font-head:'Bai Jamjuree',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --radius:16px; --radius-sm:12px; --radius-pill:999px;
+  --card-bg:#FBFAF6; --card-border:1px solid var(--ruled); --card-shadow:0 1px 2px rgba(24,34,59,.05);
+  --btn-radius:999px; --h1-size:2.6rem; --h1-weight:700; --h1-spacing:-.01em;
+  --body-size:.95rem; --shell-max:1100px; --page-pad:96px;
+}
+
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--font);
+  font-size: var(--body-size); line-height: 1.55; min-height: 100vh;
+  -webkit-font-smoothing: antialiased; transition: background .25s, color .25s;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ── ดีไซน์ 1 · Paper & Pencil (ของเดิม ขยายทั้งเว็บ) ─────────── */
+body[data-design="paper"] {
+  --font:'Bai Jamjuree',sans-serif; --font-head:'Bai Jamjuree',sans-serif;
+}
+body[data-design="paper"] .surface-hero {
+  background-color: var(--paper);
+  background-image: repeating-linear-gradient(to bottom,transparent 0,transparent 37px,#ECE6D8 37px,#ECE6D8 38px);
+  background-position: 0 8px;
+}
+
+/* ── ดีไซน์ 2 · Arena (สนามแข่ง / เกม / มืด) ─────────────────── */
+body[data-design="arena"] {
+  --paper:#0B0D14; --panel:#141824; --ruled:#242B3D;
+  --ink:#F2F4FA; --soft:#8E97AE; --accent:#00E4A0; --accent2:#00B37E;
+  --mark:#FF3D71; --good:#00E4A0; --bad:#FF3D71; --graphite:#4A5268;
+  --font:'Kanit',sans-serif; --font-head:'Kanit',sans-serif;
+  --card-bg:#141824; --card-border:1px solid #242B3D;
+  --card-shadow:0 0 0 1px rgba(0,228,160,.06), 0 18px 50px -24px rgba(0,228,160,.35);
+  --radius:14px; --h1-size:3rem; --h1-weight:700; --h1-spacing:-.02em; --btn-radius:10px;
+}
+body[data-design="arena"] .surface-hero {
+  background:
+    radial-gradient(900px 420px at 78% -10%, rgba(0,228,160,.14), transparent 62%),
+    radial-gradient(700px 380px at 8% 8%, rgba(255,61,113,.10), transparent 60%),
+    #0B0D14;
+}
+body[data-design="arena"] .h1 { text-transform: none; }
+body[data-design="arena"] .eyebrow { color: var(--accent); }
+
+/* ── ดีไซน์ 3 · Cockpit (แดชบอร์ดข้อมูลแน่น + sidebar) ────────── */
+body[data-design="cockpit"] {
+  --paper:#F7F8FA; --panel:#FFFFFF; --ruled:#E3E7EE;
+  --ink:#111827; --soft:#6B7280; --accent:#4338CA; --accent2:#312E81;
+  --mark:#FDE68A; --good:#047857; --bad:#B91C1C; --graphite:#9CA3AF;
+  --font:'IBM Plex Sans Thai',sans-serif; --font-head:'IBM Plex Sans Thai',sans-serif;
+  --card-bg:#FFFFFF; --card-border:1px solid #E3E7EE; --card-shadow:none;
+  --radius:8px; --radius-sm:6px; --btn-radius:6px;
+  --h1-size:1.75rem; --h1-weight:600; --h1-spacing:-.01em; --body-size:.875rem;
+  --shell-max:1240px; --page-pad:40px;
+}
+body[data-design="cockpit"] .surface-hero { background: #FFFFFF; }
+
+/* ── ดีไซน์ 4 · Zen (โฟกัสสุดขั้ว น้อยแต่มาก) ────────────────── */
+body[data-design="zen"] {
+  --paper:#FFFFFF; --panel:#FAFAFA; --ruled:#EAEAEA;
+  --ink:#0A0A0A; --soft:#737373; --accent:#0A0A0A; --accent2:#000000;
+  --mark:#FFE500; --good:#0A0A0A; --bad:#C4342B; --graphite:#BDBDBD;
+  --font:'Sarabun',sans-serif; --font-head:'Noto Serif Thai',serif;
+  --card-bg:transparent; --card-border:none; --card-shadow:none;
+  --radius:0px; --radius-sm:0px; --btn-radius:0px;
+  --h1-size:3.4rem; --h1-weight:400; --h1-spacing:-.03em;
+  --body-size:1rem; --shell-max:720px; --page-pad:120px;
+}
+body[data-design="zen"] .surface-hero { background:#fff; }
+
+/* ── ดีไซน์ 5 · Buddy (เพื่อนติว สดใส มือถือมาก่อน) ──────────── */
+body[data-design="buddy"] {
+  --paper:#FFF8F3; --panel:#FFEFE4; --ruled:#FFD9C2;
+  --ink:#3B2417; --soft:#9C6B4E; --accent:#FF6B3D; --accent2:#E64A19;
+  --mark:#FFD166; --good:#12A594; --bad:#E5484D; --graphite:#D9B79E;
+  --font:'Mali',cursive; --font-head:'Mali',cursive;
+  --card-bg:#FFFFFF; --card-border:2px solid #FFD9C2;
+  --card-shadow:0 6px 0 0 #FFD9C2;
+  --radius:24px; --radius-sm:18px; --btn-radius:999px;
+  --h1-size:2.2rem; --h1-weight:700; --h1-spacing:0;
+  --shell-max:560px; --page-pad:72px;
+}
+body[data-design="buddy"] .surface-hero { background: linear-gradient(180deg,#FFEFE4 0%, #FFF8F3 100%); }
+
+/* ══════════════════════════════════════════════════════════════
+   1. โครงร่วม
+   ══════════════════════════════════════════════════════════════ */
+.shell { max-width: var(--shell-max); margin: 0 auto; padding: 0 24px; }
+.page { padding-top: var(--page-pad); padding-bottom: 88px; min-height: 100vh; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: .7rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--soft);
+}
+.h1 { font-family: var(--font-head); font-size: var(--h1-size); font-weight: var(--h1-weight);
+      letter-spacing: var(--h1-spacing); line-height: 1.12; }
+.h2 { font-family: var(--font-head); font-size: calc(var(--h1-size) * .62); font-weight: var(--h1-weight);
+      letter-spacing: var(--h1-spacing); line-height: 1.2; }
+.h3 { font-family: var(--font-head); font-size: 1.1rem; font-weight: 600; }
+.muted { color: var(--soft); }
+.mono { font-family: var(--font-mono); }
+.card { background: var(--card-bg); border: var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow); padding: 26px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--accent); color: var(--paper); font-weight: 600; font-size: .9rem;
+  padding: 13px 26px; border-radius: var(--btn-radius); transition: transform .12s, background .2s, box-shadow .2s;
+}
+.btn:hover { background: var(--accent2); }
+.btn:active { transform: translateY(1px); }
+.btn-ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+.btn-ghost:hover { background: var(--accent); color: var(--paper); }
+.mark { background: linear-gradient(transparent 62%, var(--mark) 62%, var(--mark) 94%, transparent 94%); padding: 0 .1em; }
+.row { display: flex; align-items: center; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+.grid2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; }
+@media (max-width: 820px) { .grid3, .grid2 { grid-template-columns: 1fr; } }
+
+/* ปรับรายละเอียดต่อดีไซน์ */
+body[data-design="zen"] .card { padding: 0; border-bottom: 1px solid var(--ruled); padding-bottom: 28px; }
+body[data-design="zen"] .btn { border-bottom: 2px solid var(--accent); background: transparent; color: var(--ink);
+  padding: 8px 0; border-radius: 0; font-weight: 400; }
+body[data-design="zen"] .btn:hover { background: transparent; color: var(--soft); border-color: var(--soft); }
+body[data-design="zen"] .eyebrow { font-family: var(--font); letter-spacing: .2em; }
+body[data-design="arena"] .btn { box-shadow: 0 0 24px -6px var(--accent); color: #06110C; }
+body[data-design="buddy"] .btn { box-shadow: 0 4px 0 0 var(--accent2); font-weight: 700; }
+body[data-design="buddy"] .btn:active { box-shadow: 0 1px 0 0 var(--accent2); transform: translateY(3px); }
+body[data-design="cockpit"] .card { padding: 18px 20px; }
+
+/* ══════════════════════════════════════════════════════════════
+   2. NAV (3 ทรง: บน / ข้าง / แท็บล่าง)
+   ══════════════════════════════════════════════════════════════ */
+.topnav {
+  position: fixed; inset: 0 0 auto 0; height: 62px; z-index: 40;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--ruled);
+}
+.topnav .shell { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.navlinks { display: flex; gap: 26px; font-size: .85rem; }
+.navlinks a { color: var(--soft); }
+.navlinks a:hover, .navlinks a.on { color: var(--ink); }
+.brand { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; }
+.brand i { display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px;
+  border-radius: 999px; background: var(--accent); color: var(--paper); font-size: .62rem; font-style: normal; font-weight: 700; }
+
+.sidenav {
+  position: fixed; inset: 0 auto 0 0; width: 216px; z-index: 40;
+  background: var(--panel); border-right: 1px solid var(--ruled); padding: 18px 14px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sidenav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm);
+  font-size: .85rem; color: var(--soft); }
+.sidenav a:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--ink); }
+.sidenav a.on { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); font-weight: 600; }
+.sidenav .brand { padding: 6px 12px 20px; }
+.sidenav .sidefoot { margin-top: auto; border-top: 1px solid var(--ruled); padding-top: 14px; font-size: .75rem; color: var(--soft); }
+
+.tabnav {
+  position: fixed; inset: auto 0 0 0; z-index: 40; background: var(--card-bg);
+  border-top: 2px solid var(--ruled); display: flex; padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+}
+.tabnav a { flex: 1; text-align: center; font-size: .68rem; color: var(--soft); padding: 4px 0; }
+.tabnav a b { display: block; font-size: 1.15rem; line-height: 1.4; font-weight: 400; }
+.tabnav a.on { color: var(--accent); font-weight: 700; }
+
+body[data-nav="side"] .topnav, body[data-nav="side"] .tabnav { display: none; }
+body[data-nav="side"] .app { padding-left: 216px; }
+body[data-nav="side"] .page { padding-top: 34px; }
+body[data-nav="top"] .sidenav, body[data-nav="top"] .tabnav { display: none; }
+body[data-nav="tabs"] .sidenav, body[data-nav="tabs"] .topnav { display: none; }
+body[data-nav="tabs"] .page { padding-bottom: 108px; }
+body[data-design="zen"] .topnav { background: transparent; backdrop-filter: none; border-bottom: none; }
+body[data-design="zen"] .navlinks { gap: 20px; font-size: .78rem; letter-spacing: .04em; }
+
+/* ══════════════════════════════════════════════════════════════
+   3. ชิ้นส่วนเฉพาะแอป
+   ══════════════════════════════════════════════════════════════ */
+/* ── ตัวเลือกคำตอบ 5 ทรง ── */
+.choices { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
+.choice { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+  padding: 13px 16px; border: 2px solid var(--ruled); border-radius: var(--radius-sm); transition: .15s; }
+.choice:hover { border-color: var(--accent); }
+.choice .bub { flex: none; width: 28px; height: 28px; border-radius: 999px; border: 2px solid currentColor;
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: .72rem; font-weight: 600; }
+.choice.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 10%, transparent); }
+.choice.right .bub { background: var(--good); color: #fff; border-color: var(--good); }
+.choice.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); color: var(--bad); }
+.choice.wrong .bub { background: var(--bad); color: #fff; border-color: var(--bad); }
+.choice.dim { opacity: .45; }
+
+/* arena: การ์ด 2 คอลัมน์เรืองแสง */
+body[data-design="arena"] .choices { display: grid; grid-template-columns: 1fr 1fr; }
+body[data-design="arena"] .choice { flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px;
+  background: rgba(255,255,255,.02); }
+body[data-design="arena"] .choice:hover { box-shadow: 0 0 22px -8px var(--accent); }
+body[data-design="arena"] .choice .bub { border-radius: 8px; }
+/* cockpit: แถวแน่น + คีย์ลัด */
+body[data-design="cockpit"] .choices { gap: 6px; }
+body[data-design="cockpit"] .choice { padding: 9px 12px; border-width: 1px; }
+body[data-design="cockpit"] .choice .bub { width: 22px; height: 22px; border-radius: 4px; border-width: 1px; font-size: .68rem; }
+/* zen: ไม่มีกรอบ เป็นบรรทัด */
+body[data-design="zen"] .choice { border: none; border-bottom: 1px solid var(--ruled); border-radius: 0;
+  padding: 16px 2px; font-size: 1.05rem; }
+body[data-design="zen"] .choice:hover { background: var(--panel); }
+body[data-design="zen"] .choice .bub { border: none; color: var(--soft); font-family: var(--font-head); }
+body[data-design="zen"] .choice.right { background: transparent; border-bottom-color: var(--ink); }
+body[data-design="zen"] .choice.right .bub { background: transparent; color: var(--ink); }
+/* buddy: ปุ่มอ้วนกลม */
+body[data-design="buddy"] .choice { border-radius: 999px; padding: 14px 18px; box-shadow: 0 3px 0 0 var(--ruled); background: #fff; }
+body[data-design="buddy"] .choice:hover { transform: translateY(-2px); }
+
+/* ── แถบสถานะ/สถิติ ── */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-pill);
+  font-family: var(--font-mono); font-size: .72rem; font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+body[data-design="zen"] .pill { background: transparent; border-bottom: 1px solid var(--ruled); border-radius: 0; padding: 2px 0; color: var(--soft); }
+.statnum { font-family: var(--font-mono); font-size: 2.6rem; font-weight: 700; line-height: 1; }
+body[data-design="zen"] .statnum { font-family: var(--font-head); font-weight: 400; }
+.bar { height: 6px; border-radius: 999px; background: var(--ruled); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.dots { display: flex; gap: 5px; }
+.dots span { width: 8px; height: 8px; border-radius: 999px; background: var(--ruled); }
+.dots span.done { background: var(--good); } .dots span.now { background: var(--accent); }
+
+.field { width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--ruled);
+  padding: 10px 2px; color: var(--ink); outline: none; }
+.field:focus { border-color: var(--accent); }
+body[data-design="cockpit"] .field, body[data-design="buddy"] .field, body[data-design="arena"] .field {
+  border: var(--card-border); border-radius: var(--radius-sm); padding: 11px 14px; background: var(--panel); }
+
+.kbd { font-family: var(--font-mono); font-size: .66rem; border: 1px solid var(--ruled); border-radius: 4px;
+  padding: 1px 5px; color: var(--soft); margin-left: auto; }
+
+/* ══════════════════════════════════════════════════════════════
+   4. PICKER (ลากได้ · ไม่ใช่ส่วนหนึ่งของดีไซน์)
+   ══════════════════════════════════════════════════════════════ */
+#picker {
+  position: fixed; right: 20px; bottom: 20px; z-index: 999; width: 306px;
+  background: #0f1117; color: #fff; border-radius: 14px; box-shadow: 0 24px 60px -12px rgba(0,0,0,.55);
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; user-select: none; overflow: hidden;
+  border: 1px solid #2a2f3d;
+}
+#picker .hd { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: #171a23; cursor: grab; }
+#picker .hd.drag { cursor: grabbing; }
+#picker .hd b { font-size: 10px; letter-spacing: .14em; color: #7d8699; font-weight: 400; }
+#picker .hd .x { margin-left: auto; color: #7d8699; cursor: pointer; padding: 0 4px; }
+#picker .bd { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+#picker .cyc { display: flex; align-items: center; gap: 10px; }
+#picker .cyc button { width: 30px; height: 30px; border-radius: 8px; background: #232838; color: #fff; font-size: 14px; }
+#picker .cyc button:hover { background: #323a52; }
+#picker .name { flex: 1; text-align: center; }
+#picker .name b { display: block; font-size: 13px; color: #fff; font-family: 'Bai Jamjuree', sans-serif; }
+#picker .name span { font-size: 10px; color: #7d8699; }
+#picker .lbl { font-size: 9px; letter-spacing: .16em; color: #5d6577; margin-bottom: 5px; }
+#picker .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+#picker .chips button { padding: 5px 9px; border-radius: 7px; background: #232838; color: #aeb6c8; font-size: 11px; }
+#picker .chips button.on { background: #4f7cff; color: #fff; }
+#picker .hint { font-size: 10px; color: #5d6577; line-height: 1.5; border-top: 1px solid #232838; padding-top: 9px; }
+#picker.min .bd { display: none; }
+</style>
+</head>
+<body data-design="paper" data-nav="top">
+
+<div class="app" id="app"></div>
+
+<div id="picker">
+  <div class="hd"><b>◇ PROTOTYPE PICKER</b><span class="x" id="pk-min">—</span></div>
+  <div class="bd">
+    <div class="cyc">
+      <button id="pk-prev">←</button>
+      <div class="name"><b id="pk-name"></b><span id="pk-desc"></span></div>
+      <button id="pk-next">→</button>
+    </div>
+    <div><div class="lbl">หน้า</div><div class="chips" id="pk-pages"></div></div>
+    <div id="pk-states-wrap"><div class="lbl">สถานะ</div><div class="chips" id="pk-states"></div></div>
+    <div class="hint">←/→ = สลับดีไซน์ · ทั้งหน้าเปลี่ยนทั้งหน้าตาและข้อความ · ลากหัวเพื่อย้าย</div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ดีไซน์ 5 ทิศทาง — ต่างกันทั้ง layout, จังหวะ, และ "น้ำเสียง" ข้อความ
+   ══════════════════════════════════════════════════════════════ */
+const BASE = {
+  brand:'TCAS', nav:['ฝึกโจทย์','สนามสอบ','Mock Test','ราคา'],
+  navIcons:['✎','⚔','◷','◆'],
+  heroEyebrow:'AI PRACTICE · TCAS 69',
+  heroCardLabel:'กระดาษคำตอบ',
+  heroTitle:'เตรียมสอบ TCAS\nให้ <span class="mark">ตรงจุด</span>',
+  heroSub:'AI วิเคราะห์ว่าคุณอ่อนตรงไหน สร้างโจทย์ที่ตรงกับจุดนั้น แล้วบอกโอกาสติดคณะที่หวัง — ครบในที่เดียว',
+  cta1:'เริ่มฝึกฟรีวันนี้', cta2:'ดูตัวอย่างโจทย์ →',
+  stats:[['90+','คะแนนคุณภาพขั้นต่ำ','ทุกข้อผ่าน double-check'],['75','กลุ่มโจทย์','15 หัวข้อ × 5 ระดับ'],['∞','โจทย์ใหม่','AI สร้างให้ไม่ซ้ำ']],
+  featTitle:'ครบทุกโหมด\nตั้งแต่ฝึกถึงสนามจริง',
+  feats:[
+    ['ตอนที่ 01','ฝึกโจทย์อัจฉริยะ','AI จับว่าคุณอ่อนหัวข้อไหน แล้วป้อนโจทย์ที่ตรงจุดนั้น ไม่เสียเวลากับสิ่งที่แม่นอยู่แล้ว','เริ่มฝึก'],
+    ['ตอนที่ 02','สนามสอบ Real-time','เปิดห้องแข่งกับเพื่อนสูงสุด 10 คนแบบสด ฝึกทำข้อสอบใต้ความกดดันเหมือนสนามจริง','เข้าสนาม'],
+    ['ตอนที่ 03','Mock + โอกาสติดคณะ','สอบจำลองเต็มรูปแบบ AI ประเมินโอกาสติดคณะที่หวังจากคะแนนจริงและ cutoff ย้อนหลัง','ลองสอบ']],
+  ctaTitle:'พร้อมสอบ <span class="mark">ติด</span> แล้วหรือยัง?',
+  ctaSub:'เริ่มฟรีวันนี้ ไม่มีข้อผูกมัด ยกเลิกได้ทุกเมื่อ',
+  /* practice */
+  pracEyebrow:'คณิตศาสตร์', pracTopic:'พีชคณิต', pracLevel:'ระดับ 3/5',
+  pracQ:'ถ้า f(x) = 2x² − 5x + 3 แล้วผลบวกของรากทั้งหมดของสมการ f(x) = 0 มีค่าเท่าใด',
+  pracChoices:['3/2','5/2','2','5'], pracAnswer:'5/2',
+  pracRight:'ถูกต้อง!', pracWrong:'ผิด — เฉลยคือ "5/2"', pracNext:'ข้อต่อไป',
+  quotaTitle:'โจทย์วันนี้หมดแล้ว', quotaSub:'อัปเกรดเพื่อฝึกโจทย์ได้ไม่จำกัด AI ปรับระดับให้ตลอด', quotaCta:'ดูแพ็กเกจ →',
+  /* mock */
+  mockEyebrow:'จำลองสนามจริง', mockTitle:'Mock Exam', mockSub:'10 ข้อ · คณิตศาสตร์ · AI วิเคราะห์จุดอ่อน',
+  mockFieldLabel:'คณะเป้าหมาย (ไม่บังคับ)', mockFieldPh:'เช่น วิศวะ จุฬา', mockStart:'เริ่มสอบ',
+  mockResEyebrow:'ผลสอบ', mockResTitle:'Mock Exam เสร็จแล้ว', mockScoreSub:'ตอบถูก 7 จาก 10 ข้อ',
+  mockChance:'โอกาสติด:', mockChanceVal:'ปานกลาง', mockWeak:'หัวข้อที่ควรทบทวน', mockRetry:'สอบอีกครั้ง',
+  /* social */
+  socEyebrow:'แข่งกับเพื่อนสูงสุด 10 คน', socTitle:'สนามสอบ Real-time',
+  socCreateK:'เจ้าของห้อง', socCreateT:'สร้างห้องใหม่', socCreateD:'เปิดห้องแล้วแชร์รหัสให้เพื่อน ผู้สร้างเริ่มเกมได้เลย', socCreateB:'สร้างห้องใหม่',
+  socJoinK:'ผู้เข้าร่วม', socJoinT:'เข้าร่วมห้อง', socJoinD:'ใส่รหัส 6 หลักที่ได้รับจากเพื่อนแล้วกด "เข้าร่วม"', socJoinB:'เข้าร่วม', socJoinPh:'รหัสห้อง เช่น ABC123',
+  /* pricing */
+  priceEyebrow:'ราคาและแพ็กเกจ', priceTitle:'เลือกแพ็กเกจที่<span class="mark">ใช่สำหรับคุณ</span>', priceSub:'ยกเลิกได้ทุกเมื่อ ไม่มีข้อผูกมัด',
+  tier1:'Starter', tier1d:'เหมาะสำหรับน้องที่เตรียมสาย Sci-Math', tier2:'Pro', tier2d:'ครบทุกวิชา — AI วิเคราะห์จุดอ่อนทุกวันสอบ',
+  priceBadge:'แนะนำ', priceFoot:'ชำระเงินผ่าน Omise · รองรับ PromptPay / TrueMoney / บัตรเครดิต',
+  /* login */
+  loginEyebrow:'ยินดีต้อนรับกลับ', loginTitle:'เข้าสู่ระบบ', loginCta:'เข้าสู่ระบบ',
+  loginAlt:'ยังไม่มีบัญชี? <a>สมัครฟรีเลย</a>'
+};
+
+const DESIGNS = [
+  {
+    id:'paper', name:'1 · Paper & Pencil', desc:'สมุด+ดินสอ · อบอุ่น น่าเชื่อถือ (ของเดิม ขยายทุกหน้า)', nav:'top', copy:{}
+  },
+  {
+    id:'arena', name:'2 · Arena', desc:'สนามแข่งกลางคืน · เกม แต้ม สตรีค เร้าใจ', nav:'top',
+    copy:{
+      heroEyebrow:'SEASON 69 · เปิดสนามแล้ว', heroCardLabel:'ROUND 04 · LIVE',
+      heroTitle:'ไต่อันดับ\nจนกว่าจะ <span class="mark">ติด</span>',
+      heroSub:'ทุกข้อคือแต้ม ทุกวันคือสตรีค แข่งกับเพื่อน ไต่ลีก แล้วดูว่าคุณอยู่อันดับไหนของสนามจริง',
+      cta1:'เข้าสนามเลย', cta2:'ดูกระดานอันดับ →',
+      stats:[['12,480','แต้มเฉลี่ยผู้เล่นติด','ซีซั่นที่แล้ว'],['7','วันสตรีคสูงสุดของคุณ','อย่าให้ขาด'],['#248','อันดับตอนนี้','ขึ้นอีก 12 วันนี้']],
+      featTitle:'3 โหมด\nไล่จากซ้อมถึงสนามจริง',
+      feats:[['MODE 01','โซนซ้อม','ไล่เก็บโจทย์ไปเรื่อยๆ AI จะดันความยากขึ้นทุกครั้งที่คุณเริ่มชิน','ลุยเลย'],
+             ['MODE 02','ห้องดวล','ท้าเพื่อน 10 คน ตอบถูกและเร็วกว่า = แต้มสูงกว่า ใครขึ้นบนสุด?','ท้าดวล'],
+             ['MODE 03','บอสไฟต์','สอบจำลองเต็มรูปแบบ พร้อมสรุปว่าโอกาสติดคณะที่หวังตอนนี้เท่าไหร่','เจอบอส']],
+      ctaTitle:'สตรีคเริ่มที่ <span class="mark">วันนี้</span>',
+      ctaSub:'เข้าฟรี ไม่ต้องผูกบัตร ออกได้ทุกเมื่อ',
+      pracLevel:'LV.3 · +40 XP',
+      pracRight:'+40 XP · สตรีค 7 วัน 🔥', pracWrong:'พลาด! เฉลย "5/2" · สตรีคยังอยู่', pracNext:'ข้อต่อไป →',
+      quotaTitle:'พลังงานหมดแล้ว', quotaSub:'อัปเกรดเพื่อเล่นต่อไม่จำกัด และปลดล็อกโหมดดวลแบบจัดอันดับ', quotaCta:'ปลดล็อก →',
+      mockEyebrow:'BOSS FIGHT', mockTitle:'บอสไฟต์', mockSub:'10 ข้อ · ห้ามพลาดเกิน 3 · จับเวลา',
+      mockFieldLabel:'เป้าหมายซีซั่นนี้', mockStart:'เข้าไฟต์',
+      mockResEyebrow:'จบไฟต์', mockResTitle:'สรุปผลบอสไฟต์', mockScoreSub:'70% · +280 XP · ขึ้น 12 อันดับ',
+      mockChance:'ระยะห่างจากเป้า:', mockChanceVal:'อีก 2 เลเวล', mockWeak:'จุดที่บอสเจาะได้', mockRetry:'รีแมตช์',
+      socEyebrow:'สูงสุด 10 คนต่อห้อง', socTitle:'ห้องดวล',
+      socCreateK:'HOST', socCreateT:'เปิดห้องดวล', socCreateD:'ตั้งห้อง แชร์รหัส แล้วกดเริ่มเมื่อครบทีม', socCreateB:'เปิดห้อง',
+      socJoinK:'CHALLENGER', socJoinT:'เข้าห้องเพื่อน', socJoinD:'ใส่รหัส 6 หลักแล้วกระโดดเข้าไฟต์', socJoinB:'เข้าห้อง',
+      priceEyebrow:'BATTLE PASS', priceTitle:'ปลดล็อก<span class="mark">ทั้งสนาม</span>', priceSub:'ยกเลิกได้ทุกเมื่อ ไม่มีสัญญาผูกมัด',
+      tier1d:'สายเลข-ฟิสิกส์ เล่นได้ไม่จำกัด', tier2d:'ทุกวิชา + จัดอันดับ + วิเคราะห์เชิงลึก', priceBadge:'ยอดนิยม',
+      loginEyebrow:'กลับมาแล้ว', loginTitle:'เข้าสนาม', loginCta:'เข้าสนาม', loginAlt:'ยังไม่มีบัญชี? <a>สร้างโปรไฟล์นักสู้</a>'
+    }
+  },
+  {
+    id:'cockpit', name:'3 · Cockpit', desc:'ห้องนักบินข้อมูล · sidebar แน่น ตัวเลขนำ', nav:'side',
+    copy:{
+      nav:['Practice','Arena','Mock','Billing'], navIcons:['▤','◲','◷','◈'],
+      heroEyebrow:'DASHBOARD', heroCardLabel:'NEXT ITEM',
+      heroTitle:'ภาพรวมความพร้อม\nของคุณวันนี้',
+      heroSub:'ทุกตัวเลขบนหน้านี้มาจากข้อที่คุณทำจริง — แม่นยำรายหัวข้อ อัปเดตทุกครั้งที่ตอบ',
+      cta1:'ทำโจทย์ชุดถัดไป', cta2:'ดูรายงานเต็ม →',
+      stats:[['72%','ความแม่นยำ 7 วัน','+4 จากสัปดาห์ก่อน'],['1,540','เรตติ้งคณิต','เป้าหมาย 1,700'],['15/75','กลุ่มโจทย์ที่ผ่าน','เหลือ 60 กลุ่ม']],
+      featTitle:'โมดูลการฝึก',
+      feats:[['MODULE','Adaptive Practice','เสิร์ฟโจทย์ตามเรตติ้งรายหัวข้อ ปรับความยากทุกครั้งที่ตอบ','เปิดโมดูล'],
+             ['MODULE','Live Room','ห้องแข่งเรียลไทม์ ≤10 ผู้เล่น บันทึกเวลาตอบรายข้อ','เปิดโมดูล'],
+             ['MODULE','Mock & Forecast','ชุดสอบจำลอง 10 ข้อ + ประมาณการโอกาสติดจาก cutoff ย้อนหลัง','เปิดโมดูล']],
+      ctaTitle:'ตั้งเป้าหมาย แล้วให้ระบบวางแผนให้',
+      ctaSub:'สร้างบัญชีฟรี ใช้ได้ทันที ไม่ต้องผูกบัตร',
+      pracEyebrow:'MATH / ALGEBRA', pracLevel:'LV 3 · RD 62',
+      pracRight:'ถูก · เวลา 24 วิ · เรตติ้ง +18', pracWrong:'ผิด · เฉลย 5/2 · เรตติ้ง −14', pracNext:'ถัดไป (N)',
+      quotaTitle:'ใช้โควตารายวันครบแล้ว', quotaSub:'แผนฟรีจำกัด 10 ข้อ/วัน · อัปเกรดเพื่อปลดเพดานและเปิดการเสิร์ฟแบบสร้างสด', quotaCta:'ดูแผน',
+      mockEyebrow:'ASSESSMENT', mockTitle:'Mock Exam', mockSub:'10 ข้อ · math · ประเมินจุดอ่อนรายหัวข้อ',
+      mockFieldLabel:'คณะเป้าหมาย (ใช้คำนวณ forecast)', mockStart:'เริ่มชุดสอบ',
+      mockResEyebrow:'REPORT', mockResTitle:'ผลชุดสอบ #12', mockScoreSub:'7/10 ข้อ · เวลาเฉลี่ย 41 วิ/ข้อ',
+      mockChance:'Forecast โอกาสติด:', mockChanceVal:'ปานกลาง (42–58%)', mockWeak:'หัวข้อที่แม่นต่ำกว่าเกณฑ์', mockRetry:'สร้างชุดใหม่',
+      socEyebrow:'REALTIME · ≤10 SEATS', socTitle:'Live Room',
+      socCreateK:'HOST', socCreateT:'สร้างห้อง', socCreateD:'ตั้งค่าชุดโจทย์ ตัวจับเวลา และโหมดรอครบ', socCreateB:'สร้างห้อง',
+      socJoinK:'JOIN', socJoinT:'เข้าห้องด้วยรหัส', socJoinD:'รหัส 6 อักขระจากผู้สร้างห้อง', socJoinB:'เข้าห้อง',
+      priceEyebrow:'PLANS', priceTitle:'แผนการใช้งาน', priceSub:'เปลี่ยน/ยกเลิกได้ตลอด คิดค่าใช้จ่ายเป็นรอบเดือน',
+      tier1d:'2 วิชา (คณิต ฟิสิกส์) · ไม่จำกัดข้อ', tier2d:'ทุกวิชา + รายงานเชิงลึก + forecast', priceBadge:'ใช้มากสุด',
+      loginEyebrow:'AUTH', loginTitle:'เข้าสู่ระบบ', loginCta:'ยืนยันตัวตน', loginAlt:'ยังไม่มีบัญชี? <a>สร้างบัญชี</a>'
+    }
+  },
+  {
+    id:'zen', name:'4 · Zen', desc:'โฟกัสสุดขั้ว · ทีละอย่าง ตัวหนังสือใหญ่ ไม่มีกรอบ', nav:'top',
+    copy:{
+      nav:['ฝึก','แข่ง','สอบ','ราคา'],
+      heroEyebrow:'ทีละข้อ', heroCardLabel:'ตัวอย่าง',
+      heroTitle:'สอบติด\nเริ่มจากข้อเดียว',
+      heroSub:'ไม่มีแดชบอร์ด ไม่มีแต้ม มีแค่โจทย์ถัดไปที่คุณควรทำ',
+      cta1:'เริ่มข้อแรก', cta2:'ทำไมต้องทีละข้อ',
+      stats:[['1','โจทย์ต่อหน้าจอ','ไม่มีอย่างอื่นให้ไขว้เขว'],['90+','เกณฑ์คุณภาพ','ทุกข้อตรวจซ้ำแล้ว'],['0','โฆษณา สิ่งรบกวน','ตลอดไป']],
+      featTitle:'สามอย่าง เท่านั้น',
+      feats:[['หนึ่ง','ฝึก','โจทย์ถัดไปที่เหมาะกับคุณ ปรากฏทีละข้อ','เริ่ม'],
+             ['สอง','แข่ง','เมื่ออยากรู้ว่าตัวเองอยู่ตรงไหน','เข้าห้อง'],
+             ['สาม','สอบ','สิบข้อ เงียบๆ แล้วดูผลตรงไปตรงมา','เริ่มสอบ']],
+      ctaTitle:'เริ่มข้อแรกตอนนี้',
+      ctaSub:'ฟรี ไม่ต้องกรอกบัตร',
+      pracEyebrow:'คณิตศาสตร์', pracLevel:'ระดับ 3',
+      pracRight:'ถูก', pracWrong:'เฉลยคือ 5/2', pracNext:'ข้อถัดไป',
+      quotaTitle:'พอสำหรับวันนี้', quotaSub:'พรุ่งนี้ค่อยมาต่อ หรืออัปเกรดถ้าอยากทำต่อเลย', quotaCta:'ทำต่อ',
+      mockEyebrow:'สิบข้อ', mockTitle:'สอบจำลอง', mockSub:'ไม่มีเวลาจับ ไม่มีเสียง ทำให้เสร็จ',
+      mockFieldLabel:'คณะที่หวัง', mockStart:'เริ่ม',
+      mockResEyebrow:'ผล', mockResTitle:'จบแล้ว', mockScoreSub:'ถูก 7 จาก 10',
+      mockChance:'โอกาสติด', mockChanceVal:'ปานกลาง', mockWeak:'ควรกลับไปดู', mockRetry:'ทำอีกครั้ง',
+      socEyebrow:'สูงสุดสิบคน', socTitle:'ห้องแข่ง',
+      socCreateK:'', socCreateT:'สร้างห้อง', socCreateD:'แชร์รหัสให้เพื่อน แล้วเริ่มเมื่อพร้อม', socCreateB:'สร้าง',
+      socJoinK:'', socJoinT:'เข้าห้อง', socJoinD:'ใส่รหัสหกหลัก', socJoinB:'เข้า',
+      priceEyebrow:'ราคา', priceTitle:'สองแบบ พอ', priceSub:'ยกเลิกเมื่อไหร่ก็ได้',
+      tier1d:'คณิตศาสตร์ และฟิสิกส์', tier2d:'ทุกวิชา และโอกาสติดคณะ', priceBadge:'',
+      loginEyebrow:'', loginTitle:'เข้าสู่ระบบ', loginCta:'เข้าสู่ระบบ', loginAlt:'ยังไม่มีบัญชี? <a>สมัคร</a>'
+    }
+  },
+  {
+    id:'buddy', name:'5 · Buddy', desc:'เพื่อนติวข้างตัว · สดใส มือถือมาก่อน แท็บล่าง', nav:'tabs',
+    copy:{
+      nav:['ฝึก','แข่ง','สอบ','แพ็ก'], navIcons:['✏️','🔥','📋','⭐'],
+      heroEyebrow:'สวัสดีตอนเย็นน้า 🌇', heroCardLabel:'ข้อวันนี้',
+      heroTitle:'วันนี้ทำอีก 5 ข้อ\nก็ครบเป้าแล้วนะ!',
+      heroSub:'เราจะอยู่เป็นเพื่อนทุกวันจนถึงวันสอบ ค่อยๆ ไปทีละนิด เดี๋ยวก็ถึงเอง',
+      cta1:'ทำ 5 ข้อวันนี้', cta2:'ขอผ่านวันนี้ 😴',
+      stats:[['5','ข้อที่เหลือวันนี้','เกือบครบแล้ว!'],['7','วันติดกัน','เก่งมากเลย 🔥'],['72%','ความแม่นวันนี้','ดีขึ้นกว่าเมื่อวาน']],
+      featTitle:'อยากทำอะไรดี?',
+      feats:[['ทุกวัน','ฝึกกับเรา','เราเลือกโจทย์ให้พอดีตัว ไม่ยากเกินจนท้อ ไม่ง่ายเกินจนเบื่อ','ไปเลย'],
+             ['กับเพื่อน','ชวนเพื่อนมาแข่ง','เรียกแก๊งมาแข่งกัน สนุกกว่านั่งอ่านคนเดียวเยอะ','ชวนเพื่อน'],
+             ['เดือนละครั้ง','ลองสอบดู','เช็กว่าตอนนี้ถึงไหนแล้ว ไม่ต้องกลัว ผิดได้','ลองดู']],
+      ctaTitle:'พรุ่งนี้เจอกันอีกนะ 💛',
+      ctaSub:'สมัครฟรี ไม่ต้องใช้บัตร ยกเลิกได้ตลอด',
+      pracEyebrow:'คณิต', pracLevel:'กำลังพอดี ✨',
+      pracRight:'เก่งมาก! ถูกต้องเลย 🎉', pracWrong:'ไม่เป็นไรน้า เฉลยคือ 5/2 · ข้อหน้าเอาใหม่!', pracNext:'ข้อต่อไป',
+      quotaTitle:'วันนี้พอแค่นี้ก่อนนะ 🌙', quotaSub:'พักสายตาหน่อย พรุ่งนี้มาต่อ หรือถ้ายังไฟแรงอยู่ อัปเกรดแล้วทำต่อได้เลย', quotaCta:'อยากทำต่อ!',
+      mockEyebrow:'ลองของจริง', mockTitle:'ลองสอบดูมั้ย?', mockSub:'แค่ 10 ข้อเอง ใช้เวลาไม่นาน ผิดได้ไม่ว่ากัน',
+      mockFieldLabel:'อยากเข้าคณะไหนเหรอ?', mockFieldPh:'เช่น วิศวะ จุฬา', mockStart:'เริ่มเลย!',
+      mockResEyebrow:'เสร็จแล้ว!', mockResTitle:'เก่งมากที่ทำจนจบ 👏', mockScoreSub:'ถูก 7 จาก 10 ข้อ — ดีขึ้นกว่าครั้งก่อนนะ',
+      mockChance:'โอกาสติดตอนนี้:', mockChanceVal:'ปานกลาง — ไปต่อได้!', mockWeak:'ไว้ซ้อมหัวข้อนี้กันน้า', mockRetry:'ลองอีกรอบ',
+      socEyebrow:'ชวนได้ถึง 10 คน', socTitle:'มาแข่งกับเพื่อนกัน!',
+      socCreateK:'', socCreateT:'ตั้งห้องเอง', socCreateD:'สร้างห้องแล้วส่งรหัสให้แก๊ง รอครบแล้วกดเริ่มได้เลย', socCreateB:'สร้างห้อง',
+      socJoinK:'', socJoinT:'เพื่อนชวนมา', socJoinD:'ใส่รหัส 6 ตัวที่เพื่อนส่งมาได้เลย', socJoinB:'เข้าไปเลย!',
+      priceEyebrow:'แพ็กเกจ', priceTitle:'เลือกแบบที่<span class="mark">พอดีกับเรา</span>', priceSub:'ยกเลิกตอนไหนก็ได้ ไม่มีผูกมัดน้า',
+      tier1d:'สำหรับสายเลข-ฟิสิกส์', tier2d:'ครบทุกวิชา + ดูโอกาสติดคณะ', priceBadge:'คนเลือกเยอะสุด',
+      loginEyebrow:'ดีใจที่กลับมา!', loginTitle:'เข้าสู่ระบบ', loginCta:'เข้าเลย', loginAlt:'ยังไม่มีบัญชี? <a>สมัครฟรีเลย</a>'
+    }
+  }
+];
+
+const PAGES = [
+  {id:'landing', label:'หน้าแรก'},
+  {id:'practice', label:'ฝึกโจทย์', states:[['normal','โจทย์ปกติ'],['answered','ตอบแล้ว'],['empty','โควตาหมด']]},
+  {id:'mock', label:'Mock', states:[['setup','ตั้งค่า'],['exam','กำลังสอบ'],['result','ผลสอบ']]},
+  {id:'social', label:'สนามสอบ'},
+  {id:'pricing', label:'ราคา'},
+  {id:'login', label:'เข้าสู่ระบบ'}
+];
+
+const state = { d:0, page:'landing', st:{practice:'normal', mock:'setup'} };
+const T = k => { const c = DESIGNS[state.d].copy; return (c[k] !== undefined ? c[k] : BASE[k]); };
+const nl = s => String(s).replace(/\n/g,'<br>');
+
+/* ── ชิ้นส่วน ─────────────────────────────────────────────── */
+function brand(){ return `<span class="brand">${T('brand')}<i>ai</i></span>`; }
+
+function nav(){
+  const d = DESIGNS[state.d], links = T('nav'), icons = T('navIcons');
+  const routes = ['practice','social','mock','pricing'];
+  const on = i => routes[i] === state.page ? 'on' : '';
+  if (d.nav === 'side') {
+    return `<aside class="sidenav">${brand()}
+      ${links.map((l,i)=>`<a class="${on(i)}" onclick="go('${routes[i]}')"><span>${icons[i]}</span>${l}</a>`).join('')}
+      <div class="sidefoot">แผน Free · 10 ข้อ/วัน<br><a style="color:var(--accent)" onclick="go('pricing')">อัปเกรด</a></div>
+    </aside>`;
+  }
+  if (d.nav === 'tabs') {
+    return `<nav class="tabnav">${links.map((l,i)=>`<a class="${on(i)}" onclick="go('${routes[i]}')"><b>${icons[i]}</b>${l}</a>`).join('')}</nav>`;
+  }
+  return `<header class="topnav"><div class="shell">
+    <a onclick="go('landing')">${brand()}</a>
+    <nav class="navlinks">${links.map((l,i)=>`<a class="${on(i)}" onclick="go('${routes[i]}')">${l}</a>`).join('')}</nav>
+    <div class="row"><a class="muted" style="font-size:.85rem" onclick="go('login')">เข้าสู่ระบบ</a>
+    <a class="btn" style="padding:9px 20px" onclick="go('login')">เริ่มฟรี</a></div>
+  </div></header>`;
+}
+
+function choicesHTML(){
+  const st = state.st.practice, labels = ['ก','ข','ค','ง'], ans = T('pracAnswer');
+  return `<div class="choices">${T('pracChoices').map((c,i)=>{
+    let cls = '';
+    if (st === 'answered') cls = c === ans ? 'right' : (i === 0 ? 'wrong' : 'dim');
+    const kb = DESIGNS[state.d].id === 'cockpit' ? `<span class="kbd">${i+1}</span>` : '';
+    return `<button class="choice ${cls}" onclick="setSt('practice','answered')">
+      <span class="bub">${labels[i]}</span><span style="flex:1">${c}</span>${kb}</button>`;
+  }).join('')}</div>`;
+}
+
+/* ── หน้า ─────────────────────────────────────────────────── */
+function landing(){
+  return `
+  <section class="surface-hero" style="padding:calc(var(--page-pad) + 30px) 0 72px">
+    <div class="shell">
+      <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center" class="hero-grid">
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <span class="eyebrow">${T('heroEyebrow')}</span>
+          <h1 class="h1">${nl(T('heroTitle'))}</h1>
+          <p class="muted" style="max-width:30rem;font-size:1.05rem">${T('heroSub')}</p>
+          <div class="row" style="gap:18px;flex-wrap:wrap">
+            <a class="btn" onclick="go('practice')">${T('cta1')}</a>
+            <a style="color:var(--soft)" onclick="go('practice')">${T('cta2')}</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row" style="justify-content:space-between;border-bottom:1px dashed var(--ruled);padding-bottom:14px">
+            <div><div class="eyebrow">${T("heroCardLabel")}</div><div style="font-weight:600">ฟิสิกส์ · กลศาสตร์</div></div>
+            <span class="pill">${T('pracLevel')}</span>
+          </div>
+          <p style="padding:16px 0">วัตถุมวล 2 kg ถูกแรงคงที่ 10 N บนพื้นไร้แรงเสียดทาน จงหาความเร่ง</p>
+          <div class="choices" style="margin-top:0">
+            ${['2 m/s²','5 m/s²','10 m/s²','20 m/s²'].map((c,i)=>`<button class="choice ${i===1?'right':''}">
+              <span class="bub">${['ก','ข','ค','ง'][i]}</span><span>${c}</span></button>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="border-top:1px solid var(--ruled);border-bottom:1px solid var(--ruled);background:var(--panel)">
+    <div class="shell" style="padding:40px 24px"><div class="grid3">
+      ${T('stats').map(([n,l,s])=>`<div style="text-align:center">
+        <div class="statnum">${n}</div><div style="font-weight:600;margin-top:8px">${l}</div>
+        <div class="muted" style="font-size:.85rem">${s}</div></div>`).join('')}
+    </div></div>
+  </section>
+
+  <section class="shell" style="padding:80px 24px">
+    <h2 class="h2" style="margin-bottom:38px">${nl(T('featTitle'))}</h2>
+    <div class="grid3">${T('feats').map(([p,t,d,c])=>`<div class="card" style="display:flex;flex-direction:column">
+      <span class="eyebrow">${p}</span><h3 class="h3" style="margin:14px 0 10px">${t}</h3>
+      <p class="muted" style="font-size:.88rem;margin-bottom:22px">${d}</p>
+      <span style="margin-top:auto;color:var(--accent);font-weight:600;font-size:.88rem">${c} →</span></div>`).join('')}
+    </div>
+  </section>
+
+  <section style="background:var(--panel);border-top:1px solid var(--ruled);padding:84px 0;text-align:center">
+    <div class="shell">
+      <h2 class="h2" style="margin-bottom:16px">${T('ctaTitle')}</h2>
+      <p class="muted" style="margin-bottom:30px">${T('ctaSub')}</p>
+      <a class="btn" onclick="go('login')">${T('cta1')}</a>
+    </div>
+  </section>`;
+}
+
+function practice(){
+  const st = state.st.practice;
+  if (st === 'empty') return `<div class="page"><div class="shell" style="max-width:440px;text-align:center;padding-top:40px">
+    <div class="card">
+      <div style="width:46px;height:46px;border-radius:999px;background:var(--mark);opacity:.55;margin:0 auto 18px"></div>
+      <h1 class="h3" style="font-size:1.25rem;margin-bottom:10px">${T('quotaTitle')}</h1>
+      <p class="muted" style="font-size:.9rem;margin-bottom:26px">${T('quotaSub')}</p>
+      <a class="btn" onclick="go('pricing')">${T('quotaCta')}</a>
+    </div></div></div>`;
+
+  return `<div class="page"><div class="shell" style="max-width:min(var(--shell-max),660px)">
+    <div class="row" style="margin-bottom:18px">
+      <span class="eyebrow">${T('pracEyebrow')}</span>
+      <span class="muted" style="font-size:.85rem">· ${T('pracTopic')}</span>
+      <span class="pill" style="margin-left:auto">${T('pracLevel')}</span>
+    </div>
+    <div class="card">
+      <p style="font-size:1.08rem;line-height:1.7">${T('pracQ')}</p>
+      ${choicesHTML()}
+      ${st === 'answered' ? `<div class="row" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--ruled);justify-content:space-between">
+        <span style="color:var(--good);font-weight:600;font-size:.9rem">${T('pracRight')}</span>
+        <button class="btn" onclick="setSt('practice','normal')">${T('pracNext')} →</button></div>` : ''}
+    </div>
+  </div></div>`;
+}
+
+function mock(){
+  const st = state.st.mock;
+  if (st === 'setup') return `<div class="page"><div class="shell" style="max-width:min(var(--shell-max),420px)">
+    <span class="eyebrow">${T('mockEyebrow')}</span>
+    <h1 class="h1" style="font-size:calc(var(--h1-size)*.8);margin:10px 0 8px">${T('mockTitle')}</h1>
+    <p class="muted" style="margin-bottom:34px">${T('mockSub')}</p>
+    <label class="muted" style="font-size:.85rem;display:block;margin-bottom:6px">${T('mockFieldLabel')}</label>
+    <input class="field" placeholder="${T('mockFieldPh')}" style="margin-bottom:26px">
+    <button class="btn" style="width:100%" onclick="setSt('mock','exam')">${T('mockStart')} →</button>
+  </div></div>`;
+
+  if (st === 'exam') return `<div class="page"><div class="shell" style="max-width:min(var(--shell-max),660px)">
+    <div class="bar" style="margin-bottom:20px"><i style="width:40%"></i></div>
+    <div class="row" style="justify-content:space-between;margin-bottom:18px">
+      <span class="eyebrow">ข้อ 4 / 10</span>
+      <span class="dots">${[...Array(10)].map((_,i)=>`<span class="${i<3?'done':i===3?'now':''}"></span>`).join('')}</span>
+    </div>
+    <div class="card"><p style="font-size:1.08rem;line-height:1.7">${T('pracQ')}</p>${choicesHTML()}</div>
+    <button class="btn" style="margin-top:22px;width:100%" onclick="setSt('mock','result')">ส่งคำตอบ (ดูผล)</button>
+  </div></div>`;
+
+  return `<div class="page"><div class="shell" style="max-width:min(var(--shell-max),520px)">
+    <span class="eyebrow">${T('mockResEyebrow')}</span>
+    <h1 class="h1" style="font-size:calc(var(--h1-size)*.66);margin:8px 0 24px">${T('mockResTitle')}</h1>
+    <div class="card" style="text-align:center;background:var(--panel)">
+      <div class="statnum" style="font-size:4.4rem;color:var(--good)">70%</div>
+      <p class="muted" style="margin-top:10px;font-size:.9rem">${T('mockScoreSub')}</p>
+      <p style="margin-top:16px">${T('mockChance')} <b>${T('mockChanceVal')}</b></p>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div style="font-weight:600;margin-bottom:12px">${T('mockWeak')}</div>
+      <div class="row" style="flex-wrap:wrap;gap:8px">
+        ${['ตรีโกณมิติ','ลอการิทึม','ความน่าจะเป็น'].map(t=>`<span class="pill" style="background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)">${t}</span>`).join('')}
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:16px" onclick="setSt('mock','setup')">${T('mockRetry')}</button>
+  </div></div>`;
+}
+
+function social(){
+  return `<div class="page"><div class="shell" style="max-width:min(var(--shell-max),840px)">
+    <span class="eyebrow">${T('socEyebrow')}</span>
+    <h1 class="h1" style="font-size:calc(var(--h1-size)*.85);margin:10px 0 38px">${T('socTitle')}</h1>
+    <div class="grid2">
+      <div class="card" style="display:flex;flex-direction:column;gap:18px">
+        <div><span class="eyebrow" style="color:var(--accent)">${T('socCreateK')}</span>
+        <h2 class="h3" style="margin:8px 0 6px">${T('socCreateT')}</h2>
+        <p class="muted" style="font-size:.88rem">${T('socCreateD')}</p></div>
+        <button class="btn" style="margin-top:auto;width:100%">${T('socCreateB')}</button>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:18px">
+        <div><span class="eyebrow">${T('socJoinK')}</span>
+        <h2 class="h3" style="margin:8px 0 6px">${T('socJoinT')}</h2>
+        <p class="muted" style="font-size:.88rem">${T('socJoinD')}</p></div>
+        <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px">
+          <input class="field mono" style="text-align:center;letter-spacing:.3em;font-size:1.15rem" placeholder="${T('socJoinPh')}">
+          <button class="btn btn-ghost" style="width:100%">${T('socJoinB')}</button>
+        </div>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+function pricing(){
+  const tiers = [
+    {n:T('tier1'), p:99, d:T('tier1d'), f:['คณิตศาสตร์','ฟิสิกส์'], hl:false},
+    {n:T('tier2'), p:249, d:T('tier2d'), f:['คณิตศาสตร์','ฟิสิกส์','เคมี','ชีวะ (เร็วๆ นี้)'], hl:true}];
+  return `<div class="page" style="padding-bottom:0">
+    <div style="text-align:center;border-bottom:1px solid var(--ruled);padding-bottom:56px">
+      <span class="eyebrow">${T('priceEyebrow')}</span>
+      <h1 class="h1" style="margin:12px 0">${T('priceTitle')}</h1>
+      <p class="muted">${T('priceSub')}</p>
+    </div>
+    <div class="shell" style="max-width:min(var(--shell-max),680px);padding-top:56px">
+      <div class="grid2">${tiers.map(t=>`
+        <div class="card" style="position:relative;display:flex;flex-direction:column;${t.hl?'border-color:var(--accent);':''}">
+          ${t.hl && T('priceBadge') ? `<span class="pill" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--paper)">${T('priceBadge')}</span>`:''}
+          <span class="eyebrow">${t.n}</span>
+          <div class="row" style="align-items:baseline;gap:6px;margin:8px 0 10px">
+            <span class="statnum" style="font-size:2.2rem">${t.p}</span><span class="muted" style="font-size:.85rem">บาท / เดือน</span></div>
+          <p class="muted" style="font-size:.88rem;margin-bottom:20px">${t.d}</p>
+          <ul style="display:flex;flex-direction:column;gap:9px;margin-bottom:26px">
+            ${[...t.f,'AI ปรับระดับโจทย์อัตโนมัติ','ดูโอกาสติดคณะ'].map(f=>`<li class="row" style="gap:9px;font-size:.88rem"><span style="color:var(--good)">✓</span>${f}</li>`).join('')}
+          </ul>
+          <button class="btn ${t.hl?'':'btn-ghost'}" style="margin-top:auto;width:100%">สมัคร ${t.n}</button>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--ruled);margin-top:56px;padding:26px;text-align:center" class="muted">
+      <span style="font-size:.78rem">${T('priceFoot')}</span></div>
+  </div>`;
+}
+
+function login(){
+  return `<div class="page"><div class="shell" style="max-width:min(var(--shell-max),380px);padding-top:40px">
+    <span class="eyebrow">${T('loginEyebrow')}</span>
+    <h1 class="h1" style="font-size:calc(var(--h1-size)*.8);margin:10px 0 34px">${T('loginTitle')}</h1>
+    <label class="muted" style="font-size:.85rem">อีเมล</label>
+    <input class="field" placeholder="you@example.com" style="margin:6px 0 22px">
+    <label class="muted" style="font-size:.85rem">รหัสผ่าน</label>
+    <input class="field" type="password" placeholder="••••••••" style="margin:6px 0 30px">
+    <button class="btn" style="width:100%">${T('loginCta')}</button>
+    <p class="muted" style="text-align:center;margin-top:26px;font-size:.88rem">${T('loginAlt').replace('<a>','<a style="color:var(--accent);font-weight:600">')}</p>
+  </div></div>`;
+}
+
+const RENDER = {landing, practice, mock, social, pricing, login};
+
+/* ── รันเนอร์ ─────────────────────────────────────────────── */
+function render(){
+  const d = DESIGNS[state.d];
+  document.body.dataset.design = d.id;
+  document.body.dataset.nav = d.nav;
+  document.getElementById('app').innerHTML = nav() + RENDER[state.page]();
+  window.scrollTo(0,0);
+  // picker
+  document.getElementById('pk-name').textContent = d.name;
+  document.getElementById('pk-desc').textContent = d.desc;
+  document.getElementById('pk-pages').innerHTML = PAGES.map(p=>
+    `<button class="${p.id===state.page?'on':''}" onclick="go('${p.id}')">${p.label}</button>`).join('');
+  const pg = PAGES.find(p=>p.id===state.page);
+  const wrap = document.getElementById('pk-states-wrap');
+  if (pg && pg.states) {
+    wrap.style.display = '';
+    document.getElementById('pk-states').innerHTML = pg.states.map(([s,l])=>
+      `<button class="${state.st[pg.id]===s?'on':''}" onclick="setSt('${pg.id}','${s}')">${l}</button>`).join('');
+  } else wrap.style.display = 'none';
+}
+function go(p){ state.page = p; render(); }
+function setSt(p,s){ state.st[p] = s; render(); }
+function cycle(n){ state.d = (state.d + n + DESIGNS.length) % DESIGNS.length; render(); }
+
+document.getElementById('pk-prev').onclick = ()=>cycle(-1);
+document.getElementById('pk-next').onclick = ()=>cycle(1);
+document.getElementById('pk-min').onclick = ()=>document.getElementById('picker').classList.toggle('min');
+addEventListener('keydown', e=>{
+  if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.key === 'ArrowLeft') cycle(-1);
+  if (e.key === 'ArrowRight') cycle(1);
+});
+// drag
+(function(){
+  const p = document.getElementById('picker'), h = p.querySelector('.hd');
+  let dx=0, dy=0, on=false;
+  h.addEventListener('pointerdown', e=>{
+    on = true; h.classList.add('drag'); h.setPointerCapture(e.pointerId);
+    const r = p.getBoundingClientRect();
+    dx = e.clientX - r.left; dy = e.clientY - r.top;
+    p.style.right='auto'; p.style.bottom='auto'; p.style.left=r.left+'px'; p.style.top=r.top+'px';
+  });
+  h.addEventListener('pointermove', e=>{ if(!on) return;
+    p.style.left = Math.max(0,Math.min(innerWidth-p.offsetWidth, e.clientX-dx))+'px';
+    p.style.top  = Math.max(0,Math.min(innerHeight-40, e.clientY-dy))+'px'; });
+  h.addEventListener('pointerup', ()=>{ on=false; h.classList.remove('drag'); });
+})();
+addEventListener('resize', ()=>{});
+render();
+</script>
+<style>
+@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr !important; } }
+body[data-design="buddy"] .hero-grid, body[data-design="zen"] .hero-grid { grid-template-columns: 1fr !important; }
+body[data-design="zen"] .hero-grid .card { display: none; }
+</style>
+</body>
+</html>

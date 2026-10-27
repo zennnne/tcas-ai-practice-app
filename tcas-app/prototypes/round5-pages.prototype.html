@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>TCAS · รอบ 5 — หน้าหลัก · ผู้ใช้ใหม่ · โควตา · อัปเกรด · บัญชี</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF7F0; --paper-2:#F3EEE2; --paper-3:#EAE3D2;
+  --ink:#2B2A26; --ink-2:#6E675A; --ink-3:#9C9483;
+  --pen:#27567F; --pen-soft:#E3EDF6;
+  --mark:#FFE486; --ruled:#DCE4EC;
+  --right:#2E7A50; --right-soft:#E4F1E8;
+  --wrong:#B2453B; --wrong-soft:#F8E6E3;
+  --warm:#F0A030; --warm-soft:#FDF0DC;
+  --r:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(43,42,38,.06), 0 8px 24px -12px rgba(43,42,38,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Sarabun',system-ui,sans-serif;background:#DFD9CC;color:var(--ink);
+  display:flex;align-items:flex-start;justify-content:center;padding:26px 16px 120px}
+.frame{width:var(--dev,390px);height:820px;max-height:calc(100vh - 56px);background:var(--paper);
+  border-radius:22px;overflow-y:auto;overflow-x:hidden;position:relative;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.35);border:1px solid rgba(43,42,38,.12);scrollbar-width:thin}
+.screen{min-height:100%;display:flex;flex-direction:column}
+
+/* ── เปลือก (ล็อก) ─────────────────────────────────────────── */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(250,247,240,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--paper-3);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.brand{font-weight:700;letter-spacing:-.2px}
+.brand small{color:var(--ink-3);font-weight:500}
+.spacer{flex:1}
+.quota{font-size:12.5px;color:var(--pen);background:var(--pen-soft);padding:4px 10px;
+  border-radius:999px;font-weight:600;white-space:nowrap}
+.quota.low{color:#8A5A08;background:var(--warm-soft)}
+.quota.out{color:var(--wrong);background:var(--wrong-soft)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--paper-3);display:grid;
+  place-items:center;font-size:12px;font-weight:600;color:var(--ink-2);flex:none}
+.tabs{position:sticky;bottom:0;z-index:20;margin-top:auto;background:rgba(250,247,240,.96);
+  backdrop-filter:blur(8px);border-top:1px solid var(--paper-3);display:grid;
+  grid-template-columns:repeat(4,1fr);padding:6px 4px 8px}
+.tab{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:5px 2px;color:var(--ink-3);font-size:11px;font-family:inherit}
+.tab .ic{font-size:17px;line-height:1}
+.tab.on{color:var(--pen);font-weight:600}
+main{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* ── การ์ด / ปุ่ม ───────────────────────────────────────────── */
+.card{background:#fff;border:1px solid var(--paper-3);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:18px 16px}
+.card.flat{background:var(--paper-2);box-shadow:none}
+.card.warm{background:var(--warm-soft);border-color:#F0DDBC;box-shadow:none}
+.card.pen{background:var(--pen-soft);border-color:#D3E2EF;box-shadow:none}
+.btn{font-family:inherit;font-size:15px;font-weight:600;border-radius:var(--r-sm);padding:13px 18px;
+  cursor:pointer;border:1.5px solid transparent;transition:.14s}
+.btn.primary{background:var(--pen);color:#fff}
+.btn.ghost{background:transparent;border-color:var(--paper-3);color:var(--ink-2)}
+.btn.warm{background:var(--warm);color:#3B2A08}
+.btn.full{width:100%}
+.btn.sm{font-size:13.5px;padding:9px 13px}
+.btn.lg{font-size:16px;padding:15px 20px}
+.btnrow{display:flex;gap:10px}
+h1.t{font-size:24px;letter-spacing:-.4px}
+h2.t{font-size:21px;letter-spacing:-.3px}
+h3.t{font-size:16.5px}
+.lead{font-size:14px;line-height:1.66;color:var(--ink-2)}
+.sec{font-size:12.5px;font-weight:600;color:var(--ink-3);letter-spacing:.4px}
+.hint{font-size:12.5px;color:var(--ink-3);text-align:center}
+.pill{font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--paper-2);color:var(--ink-2);font-weight:500}
+.pill.goal{background:var(--pen-soft);color:var(--pen);font-weight:600}
+.pill.mark{background:var(--mark);color:#5A4A10;font-weight:600}
+.stick{position:sticky;bottom:0;margin:auto -16px -16px;padding:13px 16px 16px;
+  background:rgba(250,247,240,.97);backdrop-filter:blur(8px);border-top:1px solid var(--paper-3)}
+
+/* ── การ์ดใหญ่ "ทำต่อ" ─────────────────────────────────────── */
+.resume{background:#fff;border:1px solid var(--paper-3);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:20px 18px}
+.resume .eyebrow{font-size:12px;color:var(--ink-3);letter-spacing:.4px;margin-bottom:6px}
+.resume h2{font-size:22px;letter-spacing:-.3px;margin-bottom:9px}
+.resume .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+
+/* ── รายการแถว ─────────────────────────────────────────────── */
+.rowcards{display:grid;gap:11px}
+.rowcard{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--paper-3);
+  border-radius:var(--r);padding:14px 15px;box-shadow:var(--shadow);text-align:left;width:100%;
+  font-family:inherit;cursor:pointer}
+.rowcard .ic{width:38px;height:38px;border-radius:11px;background:var(--paper-2);display:grid;
+  place-items:center;font-size:18px;flex:none}
+.rowcard b{display:block;font-size:15px;margin-bottom:2px;font-weight:600}
+.rowcard span{font-size:12.5px;color:var(--ink-3)}
+.rowcard .go{color:var(--ink-3);font-size:16px;flex:none}
+
+/* ── สถิติ ─────────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stat{background:#fff;border:1px solid var(--paper-3);border-radius:var(--r-sm);padding:13px 10px;text-align:center}
+.stat b{display:block;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.stat span{font-size:11.5px;color:var(--ink-3)}
+.stat.empty b{color:var(--ink-3)}
+.bars{display:flex;flex-direction:column;gap:11px}
+.bar .top{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px}
+.bar .top span{color:var(--ink-2);font-variant-numeric:tabular-nums}
+.bar .t{height:7px;border-radius:999px;background:var(--paper-3);overflow:hidden}
+.bar .t > i{display:block;height:100%;border-radius:999px;background:var(--pen)}
+.bar.low .t > i{background:var(--wrong)}
+.bar.mid .t > i{background:var(--warm)}
+.bar.high .t > i{background:var(--right)}
+.spark{display:flex;align-items:flex-end;gap:5px;height:64px;margin-top:6px}
+.spark i{flex:1;background:var(--pen-soft);border-radius:4px 4px 0 0;position:relative}
+.spark i.on{background:var(--pen)}
+
+/* ── band โอกาสติด ─────────────────────────────────────────── */
+.band{border-radius:var(--r);padding:18px 16px;background:var(--warm-soft);border:1px solid #F0DDBC}
+.band .lvl{font-size:27px;font-weight:700;letter-spacing:-.5px}
+.band .gap{font-size:14px;color:var(--ink-2);line-height:1.62;margin-top:6px}
+.meter{display:flex;gap:4px;margin-top:13px}
+.meter i{flex:1;height:8px;border-radius:999px;background:rgba(43,42,38,.11)}
+.meter i.on{background:var(--warm)}
+
+/* ── เช็คลิสต์รายวัน ───────────────────────────────────────── */
+.checks{display:flex;flex-direction:column;gap:2px}
+.check{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--paper-3)}
+.check:last-child{border-bottom:0}
+.check .box{width:24px;height:24px;border-radius:7px;border:2px solid var(--paper-3);flex:none;
+  display:grid;place-items:center;font-size:13px;color:transparent}
+.check.done .box{background:var(--right);border-color:var(--right);color:#fff}
+.check.now .box{border-color:var(--pen)}
+.check b{display:block;font-size:15px;font-weight:500;margin-bottom:2px}
+.check.done b{color:var(--ink-3);text-decoration:line-through}
+.check span{font-size:12.5px;color:var(--ink-3)}
+.ring{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.ring .n{font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1}
+.ring .n small{font-size:15px;color:var(--ink-3);font-weight:500}
+
+/* ── ฟีด ────────────────────────────────────────────────────── */
+.feedcard{background:#fff;border:1px solid var(--paper-3);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:16px}
+.feedcard .kicker{font-size:11.5px;color:var(--ink-3);letter-spacing:.4px;margin-bottom:7px}
+.feedcard.up{background:var(--mark);border-color:#F0D470;box-shadow:none}
+.feedcard.up .kicker{color:#7A6412}
+
+/* ── ราคา ───────────────────────────────────────────────────── */
+.plan{border:1.5px solid var(--paper-3);border-radius:var(--r);padding:18px 16px;background:#fff}
+.plan.pick{border-color:var(--pen);border-width:2px;box-shadow:var(--shadow)}
+.plan .nm{font-size:16.5px;font-weight:700}
+.plan .pr{font-size:32px;font-weight:700;letter-spacing:-1px;margin:6px 0 2px}
+.plan .pr small{font-size:14px;color:var(--ink-3);font-weight:500;letter-spacing:0}
+.plan ul{list-style:none;margin:13px 0 15px;display:flex;flex-direction:column;gap:8px}
+.plan li{font-size:13.5px;color:var(--ink-2);padding-left:21px;position:relative;line-height:1.5}
+.plan li::before{content:'✓';position:absolute;left:0;color:var(--right);font-weight:700}
+.plan li.no{color:var(--ink-3)}
+.plan li.no::before{content:'—';color:var(--ink-3)}
+.badge{position:absolute;top:-10px;right:14px;background:var(--pen);color:#fff;font-size:11px;
+  font-weight:600;padding:3px 10px;border-radius:999px}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable th,.ptable td{padding:10px 6px;border-bottom:1px solid var(--paper-3);text-align:center}
+.ptable th:first-child,.ptable td:first-child{text-align:left;color:var(--ink-2)}
+.ptable thead th{font-size:12.5px;color:var(--ink-3);font-weight:600}
+.ptable thead th.pick{color:var(--pen)}
+.ptable td.y{color:var(--right);font-weight:700}
+.ptable td.n{color:var(--ink-3)}
+
+/* ── บัญชี ─────────────────────────────────────────────────── */
+.frow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;
+  border-bottom:1px solid var(--paper-3)}
+.frow:last-child{border-bottom:0}
+.frow .lb{font-size:14.5px;font-weight:500}
+.frow .sub{font-size:12px;color:var(--ink-3);margin-top:2px}
+.goals{display:flex;flex-direction:column;gap:2px}
+.goal{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--paper-3)}
+.goal:last-child{border-bottom:0}
+.goal .no{width:24px;height:24px;border-radius:50%;background:var(--paper-2);color:var(--ink-2);
+  display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+.goal b{flex:1;font-size:14.5px;font-weight:500}
+.goal .ch{font-size:12.5px;font-weight:600}
+.goal .ch.hi{color:var(--right)} .goal .ch.mid{color:var(--warm)} .goal .ch.lo{color:var(--wrong)}
+
+/* ── ตัวเลือกดีไซน์ ─────────────────────────────────────────── */
+#picker{position:fixed;right:18px;bottom:18px;z-index:999;width:300px;background:#25231F;
+  color:#EDE8DE;border-radius:14px;padding:12px 13px 13px;box-shadow:0 20px 50px -12px rgba(0,0,0,.55);
+  font-size:12.5px;user-select:none}
+#picker .head{display:flex;align-items:center;gap:8px;cursor:grab;margin-bottom:10px}
+#picker .head b{font-size:13px;flex:1}
+#picker .arrow{width:26px;height:26px;border-radius:7px;border:1px solid #4A463E;background:#332F29;
+  color:#EDE8DE;cursor:pointer;font-size:13px;line-height:1}
+#picker .name{font-size:14.5px;font-weight:700;margin-bottom:3px}
+#picker .desc{color:#A79F91;line-height:1.55;margin-bottom:11px;font-size:11.8px;min-height:48px}
+#picker .row{margin-bottom:9px}
+#picker .row > label{display:block;color:#8E877B;font-size:10.5px;letter-spacing:.5px;margin-bottom:5px}
+#picker .chips{display:flex;flex-wrap:wrap;gap:5px}
+#picker .chip{border:1px solid #45413A;background:#332F29;color:#CFC8BB;border-radius:7px;
+  padding:5px 9px;cursor:pointer;font-family:inherit;font-size:11.5px}
+#picker .chip.on{background:#EDE8DE;color:#25231F;border-color:#EDE8DE;font-weight:600}
+</style>
+</head>
+<body style="--dev:390px">
+
+<div class="frame"><div class="screen" id="app"></div></div>
+
+<div id="picker">
+  <div class="head" id="drag">
+    <b>รอบ 5 · หน้าหลัก + อัปเกรด</b>
+    <button class="arrow" onclick="cycle(-1)">←</button>
+    <button class="arrow" onclick="cycle(1)">→</button>
+  </div>
+  <div class="name" id="pName"></div>
+  <div class="desc" id="pDesc"></div>
+  <div class="row"><label>ดีไซน์</label><div class="chips" id="cV"></div></div>
+  <div class="row"><label>หน้าจอ</label><div class="chips" id="cP"></div></div>
+  <div class="row" style="margin-bottom:0"><label>อุปกรณ์</label><div class="chips" id="cD"></div></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   ล็อกแล้ว: Paper&Pencil · การ์ด+แท็บล่าง · โหมดโฟกัสตอนสอบ
+             ปุ่มตัวเลือกเต็มบรรทัด · mock แบบห้องสอบจริง
+             โควตาหมด = บล็อกทั้งหน้า + บอกเวลารีเซ็ต
+   รอบ 5 ต่างกันที่: หน้าหลักมีไว้ทำอะไร · ขายของยังไง · ผู้ใช้ใหม่เจออะไร
+   ════════════════════════════════════════════════════════════ */
+
+const VARIANTS = [
+  { id:'resume', name:'A · ทำต่อจากที่ค้าง',
+    desc:'หน้าหลักมีพระเอกใบเดียว คือปุ่มทำต่อจากที่ค้างไว้ · ที่เหลือเป็นรายการรอง · ขายของเป็นแถบบางไม่ขวางทาง' },
+  { id:'dash',   name:'B · แดชบอร์ดสถิติ',
+    desc:'เปิดมาเห็นตัวเลขของตัวเองก่อน ความแม่น ความต่อเนื่อง กราฟรายวัน · ปุ่มเริ่มอยู่ล่างติดจอ · ขายของด้วยสถิติเชิงลึก' },
+  { id:'goal',   name:'C · เป้าหมายนำ',
+    desc:'ทุกอย่างอ้างอิงคณะที่ตั้งเป้า · เปิดมาเห็นแถบโอกาสติดกับระยะห่างจากเกณฑ์ · ขายของด้วยเหตุผลว่าต้องซ้อมอีกเท่าไรถึงจะถึงเป้า' },
+  { id:'plan',   name:'D · แผนรายวัน',
+    desc:'หน้าหลักคือเช็คลิสต์ของวันนี้ 3 อย่าง ทำครบแล้วจบ · ลดการตัดสินใจว่าจะทำอะไรดี · ขายของด้วยแผนที่ปรับตามผลจริง' },
+  { id:'feed',   name:'E · ฟีดเดียวจบ',
+    desc:'ไม่มีหน้าหลักแยก เปิดแอปมาเจอฟีดการ์ดผสม โจทย์วันนี้ ผล mock เพื่อน และการ์ดชวนอัปเกรดแทรกอยู่ในฟีด' },
+];
+const PAGES = [
+  { id:'home',    label:'หน้าหลัก'   },
+  { id:'newbie',  label:'ผู้ใช้ใหม่' },
+  { id:'quota',   label:'โควตาหมด'   },
+  { id:'upgrade', label:'อัปเกรด'    },
+  { id:'account', label:'บัญชี'      },
+];
+const DEVS = [['390px','มือถือ 390'],['834px','iPad 834'],['1200px','Desktop']];
+
+const BASE = {
+  hi:'สวัสดีค่ะ',
+  quotaPill:'เหลือวันนี้ 7 ข้อ',
+  resumeEyebrow:'ทำต่อจากที่ค้างไว้',
+  resumeTitle:'พีชคณิต · ระดับ 3',
+  resumeBtn:'ทำต่อ',
+  startBtn:'เริ่มฝึกโจทย์',
+  newH:'ยินดีต้อนรับ',
+  newP:'ทำโจทย์สัก 10 ข้อ ระบบจะเริ่มจับได้ว่าหัวข้อไหนที่ควรซ่อมก่อน',
+  newBtn:'เริ่มข้อแรก',
+  quotaH:'โควตาวันนี้หมดแล้ว',
+  quotaP:'บัญชีแบบฟรีทำได้วันละ 10 ข้อ โควตาจะรีเซ็ตพรุ่งนี้ เวลา 06:00 น.',
+  quotaCta:'ดูแพ็กเกจ',
+  quotaAlt:'กลับมาใหม่พรุ่งนี้',
+  upH:'เลือกแพ็กเกจ',
+  upP:'ยกเลิกได้ทุกเมื่อ ไม่มีสัญญาผูกมัด',
+  upCta:'เริ่มใช้งาน',
+  upsell:'อัปเกรดเพื่อฝึกได้ไม่จำกัด',
+  accH:'บัญชีของฉัน',
+};
+const COPY = {
+  resume:{ upsell:'ฝึกได้ไม่จำกัด เริ่มต้น 99 บาทต่อเดือน' },
+  dash:  { hi:'ภาพรวมของคุณ', startBtn:'ฝึกต่ออีก 10 ข้อ',
+           newH:'ยังไม่มีข้อมูลพอจะประเมิน', newP:'สถิติทั้งหมดจะเริ่มแสดงเมื่อทำครบ 10 ข้อแรก ตอนนี้ทำไปแล้ว 0 ข้อ',
+           upH:'ปลดล็อกสถิติเชิงลึก', upsell:'ดูสถิติย้อนหลังและแนวโน้มรายหัวข้อ' },
+  goal:  { hi:'ระยะห่างจากเป้าหมาย', startBtn:'ซ่อมหัวข้อที่ถ่วงคะแนน',
+           newH:'ตั้งเป้าหมายก่อนเริ่ม', newP:'เลือกคณะที่อยากติดได้ถึง 5 อันดับ ระบบจะจัดชุดฝึกและประเมินโอกาสให้ตรงกับเกณฑ์ของคณะนั้น',
+           newBtn:'เลือกคณะเป้าหมาย',
+           upH:'ซ้อมให้ถึงเป้า', upP:'ยังห่างจากเกณฑ์อยู่ วันละ 10 ข้อยังไม่พอที่จะปิดช่องว่างทัน',
+           upsell:'วันละ 10 ข้อยังไม่พอจะถึงเป้าที่ตั้งไว้', quotaCta:'ดูแพ็กเกจที่ช่วยให้ถึงเป้า' },
+  plan:  { hi:'แผนของวันนี้', startBtn:'เริ่มรายการแรก',
+           newH:'สร้างแผนของคุณ', newP:'ตอบ 3 คำถามสั้น ๆ เรื่องเวลาที่ว่างและวันสอบ ระบบจะจัดแผนรายวันให้',
+           newBtn:'สร้างแผน',
+           upH:'แผนที่ปรับตามผลจริง', upsell:'แผนรายวันจะปรับให้อัตโนมัติเมื่ออัปเกรด' },
+  feed:  { hi:'วันนี้', startBtn:'เริ่มชุดวันนี้',
+           newH:'เริ่มจากตรงนี้', newP:'เลือกหัวข้อที่อยากลองก่อน แล้วฟีดจะค่อย ๆ ปรับตามผลของคุณ',
+           upH:'อัปเกรด', upsell:'ฝึกได้ไม่จำกัดทุกวัน' },
+};
+const T = k => (COPY[S.v]||{})[k] ?? BASE[k];
+const S = { v:'resume', page:'home', dev:'390px' };
+
+/* ── ชิ้นส่วนร่วม ───────────────────────────────────────────── */
+const topbar = (q='') => `<div class="topbar">
+  <div class="brand">TCAS <small>Practice</small></div><div class="spacer"></div>
+  ${q!==null?`<div class="quota${q}">${q===' out'?'โควตาหมดแล้ว':T('quotaPill')}</div>`:''}
+  <div class="avatar">ZN</div></div>`;
+
+const tabs = a => { const it=[['▤','หน้าหลัก','home'],['✎','ฝึกโจทย์','practice'],['⚑','สนามสอบ','social'],['◍','บัญชี','account']];
+  return `<div class="tabs">${it.map(([i,l,id])=>
+    `<button class="tab${id===a?' on':''}"><span class="ic">${i}</span>${l}</button>`).join('')}</div>`; };
+
+const upStrip = () => `<button class="rowcard" style="background:var(--mark);border-color:#F0D470;box-shadow:none">
+  <div class="ic" style="background:rgba(255,255,255,.55)">✦</div>
+  <div style="flex:1"><b>${T('upsell')}</b><span>ดูแพ็กเกจทั้งหมด</span></div>
+  <span class="go">›</span></button>`;
+
+const topicBars = () => `<div class="bars">
+  <div class="bar low"><div class="top"><b>ฟังก์ชัน</b><span>38%</span></div><div class="t"><i style="width:38%"></i></div></div>
+  <div class="bar mid"><div class="top"><b>พีชคณิต</b><span>56%</span></div><div class="t"><i style="width:56%"></i></div></div>
+  <div class="bar high"><div class="top"><b>เรขาคณิต</b><span>88%</span></div><div class="t"><i style="width:88%"></i></div></div>
+  <div class="bar high"><div class="top"><b>สถิติ</b><span>80%</span></div><div class="t"><i style="width:80%"></i></div></div>
+</div>`;
+
+/* ── หน้าจอ ─────────────────────────────────────────────────── */
+const R = {
+home(){
+  const v = S.v;
+  let body='';
+  if(v==='resume') body = `
+    <div class="resume">
+      <div class="eyebrow">${T('resumeEyebrow')}</div>
+      <h2>${T('resumeTitle')}</h2>
+      <div class="meta"><span class="pill">ทำไปแล้ว 24 ข้อ</span><span class="pill">ถูก 71%</span></div>
+      <button class="btn primary full lg">${T('resumeBtn')}</button>
+    </div>
+    <div class="sec">อย่างอื่นที่ค้างอยู่</div>
+    <div class="rowcards">
+      <button class="rowcard"><div class="ic">⧗</div><div style="flex:1"><b>Mock ค้างอยู่</b>
+        <span>เหลืออีก 18 ข้อ · หมดเวลาใน 58 นาที</span></div><span class="go">›</span></button>
+      <button class="rowcard"><div class="ic">⚑</div><div style="flex:1"><b>ห้องสอบ 4KQ2ZP</b>
+        <span>เพื่อน 3 คนทำเสร็จแล้ว รอผลของคุณ</span></div><span class="go">›</span></button>
+    </div>
+    ${upStrip()}`;
+
+  if(v==='dash') body = `
+    <div class="stats">
+      <div class="stat"><b>248</b><span>ข้อสะสม</span></div>
+      <div class="stat"><b>68%</b><span>ความแม่น</span></div>
+      <div class="stat"><b>7</b><span>วันต่อเนื่อง</span></div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:2px">14 วันที่ผ่านมา</div>
+      <div class="spark">
+        ${[30,45,20,60,55,70,40,80,65,90,50,75,85,60].map((h,i)=>
+          `<i class="${i>10?'on':''}" style="height:${h}%"></i>`).join('')}
+      </div>
+      <div class="hint" style="margin-top:8px;text-align:left">เฉลี่ยวันละ 18 ข้อ · สูงกว่าสัปดาห์ก่อน 22%</div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:12px">ความแม่นรายหัวข้อ</div>
+      ${topicBars()}
+    </div>
+    ${upStrip()}`;
+
+  if(v==='goal') body = `
+    <div class="band">
+      <div class="sec" style="margin-bottom:4px">อันดับ 1 · วิศวกรรมศาสตร์ จุฬาฯ</div>
+      <div class="lvl">ปานกลาง</div>
+      <div class="gap">จากผลซ้อมสามครั้งล่าสุด คะแนนของคุณยังต่ำกว่าช่วงที่มักติดของคณะนี้อยู่เล็กน้อย</div>
+      <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+    </div>
+    <div class="card">
+      <h3 class="t" style="margin-bottom:7px">หัวข้อที่ถ่วงคะแนนมากที่สุด</h3>
+      <p class="lead" style="margin-bottom:14px">ฟังก์ชันคิดเป็น 27% ของข้อสอบคณะนี้ แต่เป็นหัวข้อที่คุณทำได้ต่ำสุด</p>
+      ${topicBars()}
+    </div>
+    <div class="rowcards">
+      <button class="rowcard"><div class="ic">◎</div><div style="flex:1"><b>ดูคณะเป้าหมายทั้ง 5 อันดับ</b>
+        <span>โอกาสติดของแต่ละอันดับ</span></div><span class="go">›</span></button>
+    </div>
+    ${upStrip()}`;
+
+  if(v==='plan') body = `
+    <div class="card">
+      <div class="ring">
+        <div class="n">1<small> / 3</small></div>
+        <div style="flex:1"><b style="font-size:15px">ทำไปแล้ว 1 อย่างวันนี้</b>
+          <div class="lead" style="font-size:12.5px">เหลืออีก 2 อย่าง ใช้เวลาราว 20 นาที</div></div>
+      </div>
+      <div class="checks">
+        <div class="check done"><div class="box">✓</div><div><b>อุ่นเครื่อง 5 ข้อ</b><span>เสร็จเมื่อ 08:12 น.</span></div></div>
+        <div class="check now"><div class="box">✓</div><div><b>ซ่อมฟังก์ชัน 10 ข้อ</b><span>หัวข้อที่ทำได้ต่ำสุดตอนนี้</span></div></div>
+        <div class="check"><div class="box">✓</div><div><b>ซ้อมสอบชุดสั้น 15 ข้อ</b><span>ครั้งสุดท้ายเมื่อ 4 วันก่อน</span></div></div>
+      </div>
+    </div>
+    <div class="sec">สัปดาห์นี้</div>
+    <div class="card flat">
+      <p class="lead">ทำครบแผนไปแล้ว 4 จาก 7 วัน · วันเสาร์มีซ้อมสอบชุดเต็ม 30 ข้อรออยู่</p>
+    </div>
+    ${upStrip()}`;
+
+  if(v==='feed') body = `
+    <div class="feedcard">
+      <div class="kicker">ชุดของวันนี้</div>
+      <h3 class="t" style="margin-bottom:6px">ฟังก์ชัน 10 ข้อ</h3>
+      <p class="lead" style="margin-bottom:13px">เลือกให้จากหัวข้อที่ผลยังไม่คงที่</p>
+      <button class="btn primary full">${T('startBtn')}</button>
+    </div>
+    <div class="feedcard">
+      <div class="kicker">ผลซ้อมสอบล่าสุด · เมื่อวาน</div>
+      <h3 class="t" style="margin-bottom:6px">ได้ 19 จาก 30</h3>
+      <p class="lead">ดีขึ้นจากครั้งก่อน 3 ข้อ · ฟังก์ชันยังเป็นจุดที่เสียคะแนนมากที่สุด</p>
+    </div>
+    <div class="feedcard up">
+      <div class="kicker">แพ็กเกจ</div>
+      <h3 class="t" style="margin-bottom:6px">${T('upsell')}</h3>
+      <p class="lead" style="color:#5A4A10;margin-bottom:13px">วันนี้ใช้ไปแล้ว 3 จาก 10 ข้อ</p>
+      <button class="btn warm full">ดูแพ็กเกจ</button>
+    </div>
+    <div class="feedcard">
+      <div class="kicker">สนามสอบ</div>
+      <h3 class="t" style="margin-bottom:6px">เพื่อน 3 คนทำห้อง 4KQ2ZP เสร็จแล้ว</h3>
+      <p class="lead">ทำให้ครบเพื่อดูอันดับและเฉลยของห้อง</p>
+    </div>`;
+
+  return topbar('') + `<main>
+    <div><h1 class="t">${T('hi')}</h1>
+      ${v==='resume'?'':`<p class="lead" style="margin-top:4px">19 สิงหาคม 2569</p>`}</div>
+    ${body}
+    ${v==='dash'||v==='goal'||v==='plan' ? `<div class="stick">
+      <button class="btn primary full lg">${T('startBtn')}</button></div>` : ''}
+  </main>` + tabs('home');
+},
+
+newbie(){
+  const v = S.v;
+  let body='';
+  if(v==='resume') body = `
+    <div class="card" style="text-align:center;padding:30px 20px">
+      <div style="font-size:42px;margin-bottom:10px">✎</div>
+      <h2 class="t" style="margin-bottom:8px">${T('newH')}</h2>
+      <p class="lead" style="margin-bottom:20px">${T('newP')}</p>
+      <button class="btn primary full lg">${T('newBtn')}</button>
+    </div>
+    <div class="sec">สามอย่างที่แอปนี้ทำให้</div>
+    <div class="rowcards">
+      <button class="rowcard"><div class="ic">✎</div><div style="flex:1"><b>โจทย์ที่ปรับระดับตามคุณ</b>
+        <span>ตอบถูกติดกันแล้วยากขึ้นเอง</span></div></button>
+      <button class="rowcard"><div class="ic">⧗</div><div style="flex:1"><b>ซ้อมสอบจับเวลา</b>
+        <span>รูปแบบเดียวกับสนามสอบจริง</span></div></button>
+      <button class="rowcard"><div class="ic">◎</div><div style="flex:1"><b>ประเมินโอกาสติด</b>
+        <span>เทียบกับคณะที่คุณตั้งเป้าไว้</span></div></button>
+    </div>`;
+
+  if(v==='dash') body = `
+    <div class="stats">
+      <div class="stat empty"><b>—</b><span>ข้อสะสม</span></div>
+      <div class="stat empty"><b>—</b><span>ความแม่น</span></div>
+      <div class="stat empty"><b>—</b><span>วันต่อเนื่อง</span></div>
+    </div>
+    <div class="card" style="text-align:center;padding:26px 20px">
+      <h2 class="t" style="margin-bottom:8px">${T('newH')}</h2>
+      <p class="lead" style="margin-bottom:18px">${T('newP')}</p>
+      <button class="btn primary full lg">${T('newBtn')}</button>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:12px">ความแม่นรายหัวข้อ</div>
+      <div class="bars">
+        ${['ฟังก์ชัน','พีชคณิต','เรขาคณิต','สถิติ'].map(t=>
+          `<div class="bar"><div class="top"><b>${t}</b><span>ยังไม่มีข้อมูล</span></div>
+             <div class="t"></div></div>`).join('')}
+      </div>
+    </div>`;
+
+  if(v==='goal') body = `
+    <div class="card" style="text-align:center;padding:28px 20px">
+      <div style="font-size:42px;margin-bottom:10px">◎</div>
+      <h2 class="t" style="margin-bottom:8px">${T('newH')}</h2>
+      <p class="lead" style="margin-bottom:20px">${T('newP')}</p>
+      <button class="btn primary full lg">${T('newBtn')}</button>
+    </div>
+    <div class="card flat">
+      <div class="sec" style="margin-bottom:11px">คณะที่คนเลือกบ่อย</div>
+      <div class="rowcards">
+        <button class="rowcard"><div class="ic">1</div><div style="flex:1"><b>วิศวกรรมศาสตร์ · จุฬาฯ</b>
+          <span>คณิต 1 40% · ฟิสิกส์ 35% · เคมี 25%</span></div><span class="go">+</span></button>
+        <button class="rowcard"><div class="ic">2</div><div style="flex:1"><b>แพทยศาสตร์ · ศิริราช</b>
+          <span>ชีววิทยา 35% · เคมี 30% · คณิต 1 20%</span></div><span class="go">+</span></button>
+      </div>
+    </div>`;
+
+  if(v==='plan') body = `
+    <div class="card" style="text-align:center;padding:28px 20px">
+      <div style="font-size:42px;margin-bottom:10px">▤</div>
+      <h2 class="t" style="margin-bottom:8px">${T('newH')}</h2>
+      <p class="lead" style="margin-bottom:20px">${T('newP')}</p>
+      <button class="btn primary full lg">${T('newBtn')}</button>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:4px">ตัวอย่างแผนหนึ่งวัน</div>
+      <div class="checks">
+        <div class="check"><div class="box">✓</div><div><b>อุ่นเครื่อง 5 ข้อ</b><span>ราว 5 นาที</span></div></div>
+        <div class="check"><div class="box">✓</div><div><b>ซ่อมหัวข้อที่อ่อน 10 ข้อ</b><span>ราว 12 นาที</span></div></div>
+        <div class="check"><div class="box">✓</div><div><b>ซ้อมสอบชุดสั้น</b><span>ราว 15 นาที</span></div></div>
+      </div>
+    </div>`;
+
+  if(v==='feed') body = `
+    <div class="feedcard">
+      <div class="kicker">เริ่มต้น</div>
+      <h3 class="t" style="margin-bottom:6px">${T('newH')}</h3>
+      <p class="lead">${T('newP')}</p>
+    </div>
+    ${['ฟังก์ชัน','พีชคณิต','เรขาคณิต'].map(t=>`
+      <div class="feedcard">
+        <div class="kicker">ลองหัวข้อนี้</div>
+        <h3 class="t" style="margin-bottom:11px">${t} 10 ข้อ</h3>
+        <button class="btn primary full">เริ่ม</button>
+      </div>`).join('')}`;
+
+  return topbar('') + `<main>${body}</main>` + tabs('home');
+},
+
+quota(){
+  return topbar(' out') + `<main>
+    <div class="card warm" style="text-align:center;padding:30px 20px">
+      <div style="font-size:40px;margin-bottom:12px">⏱</div>
+      <h2 class="t" style="margin-bottom:9px">${T('quotaH')}</h2>
+      <p class="lead" style="margin-bottom:22px">${T('quotaP')}</p>
+      <button class="btn primary full lg" style="margin-bottom:9px">${T('quotaCta')}</button>
+      <button class="btn ghost full">${T('quotaAlt')}</button>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:12px">วันนี้คุณทำไปแล้ว</div>
+      <div class="stats">
+        <div class="stat"><b>10</b><span>ข้อ</span></div>
+        <div class="stat"><b>70%</b><span>ความแม่น</span></div>
+        <div class="stat"><b>18</b><span>นาที</span></div>
+      </div>
+      <p class="lead" style="margin-top:13px">ฟังก์ชันยังเป็นหัวข้อที่ทำได้ต่ำสุด ถ้าอยากฝึกต่อวันนี้ ต้องอัปเกรดแพ็กเกจ</p>
+    </div>
+    <div class="sec">ระหว่างนี้ทำอย่างอื่นได้</div>
+    <div class="rowcards">
+      <button class="rowcard"><div class="ic">▤</div><div style="flex:1"><b>ทบทวนข้อที่เคยตอบผิด</b>
+        <span>24 ข้อ · ไม่นับโควตา</span></div><span class="go">›</span></button>
+      <button class="rowcard"><div class="ic">◎</div><div style="flex:1"><b>ดูผลซ้อมสอบย้อนหลัง</b>
+        <span>3 ครั้งล่าสุด</span></div><span class="go">›</span></button>
+    </div>
+  </main>` + tabs('practice');
+},
+
+upgrade(){
+  const v = S.v;
+  const feats = [
+    ['โจทย์ต่อวัน','10 ข้อ','ไม่จำกัด','ไม่จำกัด'],
+    ['ซ้อมสอบจับเวลา','เดือนละ 1','ไม่จำกัด','ไม่จำกัด'],
+    ['คำอธิบายวิธีคิด','—','ทุกข้อ','ทุกข้อ'],
+    ['สถิติรายหัวข้อ','—','มี','ย้อนหลังเต็ม'],
+    ['ประเมินโอกาสติด','—','—','มี'],
+    ['สนามสอบกับเพื่อน','เข้าร่วมได้','สร้างห้องได้','สร้างห้องได้'],
+  ];
+
+  if(v==='dash') return topbar('') + `<main>
+    <div><h1 class="t">${T('upH')}</h1>
+      <p class="lead" style="margin-top:4px">${T('upP')}</p></div>
+    <div class="card" style="overflow-x:auto">
+      <table class="ptable">
+        <thead><tr><th></th><th>ฟรี</th><th class="pick">Starter</th><th>Pro</th></tr></thead>
+        <tbody>${feats.map(([n,a,b,c])=>`<tr><td>${n}</td>
+          <td class="${a==='—'?'n':''}">${a}</td>
+          <td class="${b==='—'?'n':'y'}">${b}</td>
+          <td class="${c==='—'?'n':'y'}">${c}</td></tr>`).join('')}
+          <tr><td><b>ราคาต่อเดือน</b></td><td class="n">0</td>
+            <td style="color:var(--pen);font-weight:700">99</td>
+            <td style="font-weight:700">249</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stick"><div class="btnrow">
+      <button class="btn ghost" style="flex:1">Pro 249</button>
+      <button class="btn primary" style="flex:1.3">Starter 99</button></div></div>
+  </main>` + tabs('account');
+
+  if(v==='goal') return topbar('') + `<main>
+    <div><h1 class="t">${T('upH')}</h1>
+      <p class="lead" style="margin-top:4px">${T('upP')}</p></div>
+    <div class="band">
+      <div class="sec" style="margin-bottom:4px">อันดับ 1 · วิศวกรรมศาสตร์ จุฬาฯ</div>
+      <div class="lvl">ปานกลาง</div>
+      <div class="gap">ด้วยวันละ 10 ข้อ จะได้ฝึกฟังก์ชันราว 3 ข้อต่อวัน ซึ่งเป็นหัวข้อที่คิดเป็น 27% ของข้อสอบคณะนี้</div>
+    </div>
+    <div class="plan pick" style="position:relative;margin-top:4px">
+      <div class="badge">แนะนำสำหรับเป้าหมายนี้</div>
+      <div class="nm">Pro</div>
+      <div class="pr">249<small> บาท / เดือน</small></div>
+      <ul>
+        <li>ฝึกได้ไม่จำกัด</li><li>ซ้อมสอบจับเวลาไม่จำกัด</li>
+        <li>คำอธิบายวิธีคิดทุกข้อ</li><li>ประเมินโอกาสติดครบทั้ง 5 อันดับ</li>
+      </ul>
+      <button class="btn primary full lg">${T('upCta')}</button>
+    </div>
+    <div class="card flat">
+      <div class="nm" style="font-weight:700;margin-bottom:3px">Starter · 99 บาท / เดือน</div>
+      <p class="lead">ฝึกไม่จำกัดและมีคำอธิบายวิธีคิด แต่ยังไม่รวมการประเมินโอกาสติด</p>
+      <button class="btn ghost full" style="margin-top:12px">เลือก Starter</button>
+    </div>
+    <p class="hint">${BASE.upP}</p>
+  </main>` + tabs('account');
+
+  /* resume / plan / feed — การ์ดราคาเรียงลง */
+  return topbar('') + `<main>
+    <div><h1 class="t">${T('upH')}</h1>
+      <p class="lead" style="margin-top:4px">${v==='plan'
+        ? 'แผนรายวันจะปรับตามผลจริงของคุณทุกวัน เมื่ออยู่ในแพ็กเกจแบบเสียเงิน'
+        : BASE.upP}</p></div>
+    <div class="plan pick" style="position:relative">
+      <div class="badge">คุ้มที่สุด</div>
+      <div class="nm">Starter</div>
+      <div class="pr">99<small> บาท / เดือน</small></div>
+      <ul>
+        <li>ฝึกได้ไม่จำกัด</li>
+        <li>ซ้อมสอบจับเวลาไม่จำกัด</li>
+        <li>คำอธิบายวิธีคิดทุกข้อ</li>
+        <li>สถิติรายหัวข้อ</li>
+        <li class="no">ประเมินโอกาสติด</li>
+      </ul>
+      <button class="btn primary full lg">${T('upCta')}</button>
+    </div>
+    <div class="plan">
+      <div class="nm">Pro</div>
+      <div class="pr">249<small> บาท / เดือน</small></div>
+      <ul>
+        <li>ทุกอย่างใน Starter</li>
+        <li>ประเมินโอกาสติดครบ 5 อันดับ</li>
+        <li>สถิติย้อนหลังเต็มรูปแบบ</li>
+        <li>สร้างห้องสนามสอบได้ไม่จำกัด</li>
+      </ul>
+      <button class="btn ghost full lg">${T('upCta')}</button>
+    </div>
+    <p class="hint">${BASE.upP}</p>
+  </main>` + tabs('account');
+},
+
+account(){
+  return topbar('') + `<main>
+    <div><h1 class="t">${T('accH')}</h1></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+        <div class="avatar" style="width:48px;height:48px;font-size:16px">ZN</div>
+        <div style="flex:1"><b style="font-size:16px">zen</b>
+          <div class="lead" style="font-size:12.5px">student@example.com</div></div>
+        <span class="pill mark">ฟรี</span>
+      </div>
+    </div>
+    <div class="card pen">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1"><b style="font-size:15px">แพ็กเกจฟรี · วันละ 10 ข้อ</b>
+          <div class="lead" style="font-size:12.5px;margin-top:2px">วันนี้ใช้ไปแล้ว 3 ข้อ</div></div>
+        <button class="btn primary sm">อัปเกรด</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:6px">คณะเป้าหมาย</div>
+      <div class="goals">
+        <div class="goal"><span class="no">1</span><b>วิศวกรรมศาสตร์ · จุฬาฯ</b><span class="ch mid">ปานกลาง</span></div>
+        <div class="goal"><span class="no">2</span><b>วิศวกรรมศาสตร์ · มจธ.</b><span class="ch hi">ค่อนข้างสูง</span></div>
+        <div class="goal"><span class="no">3</span><b>วิทยาศาสตร์ · มหิดล</b><span class="ch hi">ค่อนข้างสูง</span></div>
+        <div class="goal"><span class="no">4</span><b>วิศวกรรมศาสตร์ · ลาดกระบัง</b><span class="ch hi">ค่อนข้างสูง</span></div>
+        <div class="goal"><span class="no">5</span><b>แพทยศาสตร์ · ศิริราช</b><span class="ch lo">ยังห่าง</span></div>
+      </div>
+      <button class="btn ghost full sm" style="margin-top:13px">แก้ไขคณะเป้าหมาย</button>
+    </div>
+    <div class="card">
+      <div class="frow"><div><div class="lb">แจ้งเตือนให้ฝึกทุกวัน</div>
+        <div class="sub">เวลา 19:00 น.</div></div><span class="pill">เปิด</span></div>
+      <div class="frow"><div class="lb">ระดับชั้น</div><span class="pill">ม.6</span></div>
+      <div class="frow"><div class="lb">นโยบายความเป็นส่วนตัว</div><span class="go">›</span></div>
+      <div class="frow"><div class="lb">ออกจากระบบ</div><span class="go">›</span></div>
+    </div>
+  </main>` + tabs('account');
+},
+};
+
+/* ── เรนเดอร์ ───────────────────────────────────────────────── */
+function render(){
+  document.body.dataset.v = S.v;
+  document.body.style.setProperty('--dev', S.dev);
+  document.getElementById('app').innerHTML = R[S.page]();
+  document.querySelector('.frame').scrollTop = 0;
+  paintPicker();
+}
+function chips(el,list,cur,fn){
+  el.innerHTML = list.map(([v,l])=>`<button class="chip${v===cur?' on':''}" data-v="${v}">${l}</button>`).join('');
+  [...el.children].forEach(c=>c.onclick=()=>{ fn(c.dataset.v); render(); });
+}
+function paintPicker(){
+  const v = VARIANTS.find(x=>x.id===S.v);
+  pName.textContent = v.name; pDesc.textContent = v.desc;
+  chips(cV, VARIANTS.map(x=>[x.id,x.name.split(' · ')[0]]), S.v, x=>S.v=x);
+  chips(cP, PAGES.map(x=>[x.id,x.label]), S.page, x=>S.page=x);
+  chips(cD, DEVS, S.dev, x=>S.dev=x);
+}
+function cycle(d){
+  const i = VARIANTS.findIndex(x=>x.id===S.v);
+  S.v = VARIANTS[(i+d+VARIANTS.length)%VARIANTS.length].id;
+  render();
+}
+addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight') cycle(1);
+  if(e.key==='ArrowLeft')  cycle(-1);
+});
+(function(){
+  const p = picker, h = drag; let dx=0,dy=0,on=false;
+  h.onmousedown = e=>{ on=true; const r=p.getBoundingClientRect();
+    dx=e.clientX-r.left; dy=e.clientY-r.top; h.style.cursor='grabbing'; };
+  addEventListener('mousemove', e=>{ if(!on) return;
+    p.style.left=(e.clientX-dx)+'px'; p.style.top=(e.clientY-dy)+'px';
+    p.style.right='auto'; p.style.bottom='auto'; });
+  addEventListener('mouseup', ()=>{ on=false; h.style.cursor='grab'; });
+})();
+render();
+</script>
+</body>
+</html>

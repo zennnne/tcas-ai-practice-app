@@ -41,3 +41,10 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# === AI agent / tooling (local only) ===
+.claude/
+.playwright-mcp/
+CLAUDE.md
+AGENTS.md
+_archive/

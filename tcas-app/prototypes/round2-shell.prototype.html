@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE รอบ 2 — โครงหน้าใน + พื้นผิวโจทย์</title>
+<!--
+  PROTOTYPE — THROWAWAY. ห้าม merge เข้า production
+  ล็อกแล้วจากรอบ 1: ธีม Paper & Pencil · น้ำเสียงทางการสุภาพ · nav แยก marketing/app · มือถือ+iPad มาก่อน
+  คำถามรอบ 2: "หน้าใน (app shell + พื้นผิวโจทย์) ควรมีโครงแบบไหน"
+  5 โครง ต่างกันที่: แถบบน, ตำแหน่ง nav, การ์ดหรือไม่มีการ์ด, เฉลยโผล่ตรงไหน, ปุ่มไปต่ออยู่ไหน
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ═══ tokens: ตรงกับ globals.css ของจริง ═══ */
+*, *::before, *::after { box-sizing: border-box; }
+body, h1, h2, h3, p, ul, figure { margin: 0; padding: 0; }
+ul { list-style: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+input { font: inherit; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+
+:root {
+  --paper:#FBFAF6; --panel:#F3EFE6; --ruled:#E7E1D4;
+  --ink:#18223B; --soft:#5C6479; --pen:#2F5BFF; --pen-deep:#1E40AF;
+  --mark:#FFDC4A; --correct:#166534; --bad:#DC2626; --graphite:#C7C0B0;
+  --warm:#FFF6E8; --warm-bd:#F3DFBD;
+  --font:'Bai Jamjuree',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  --dev: 390px;
+}
+body { background:#E9E5DC; color:var(--ink); font-family:var(--font); font-size:15px; line-height:1.55;
+       -webkit-font-smoothing:antialiased; }
+
+/* ═══ กรอบอุปกรณ์ (มือถือ / iPad / desktop) ═══ */
+.viewport {
+  width:var(--dev); max-width:100%; margin:0 auto; min-height:100vh;
+  background:var(--paper); display:flex; flex-direction:column;
+  box-shadow:0 0 0 1px rgba(24,34,59,.10), 0 30px 80px -30px rgba(24,34,59,.35);
+  position:relative; overflow-x:hidden;
+}
+.devlabel { position:fixed; top:10px; left:14px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.14em; color:#8A8778; z-index:5; }
+
+/* ═══ พื้นฐาน ═══ */
+.eyebrow { font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--soft); }
+.muted { color:var(--soft); }
+.mono { font-family:var(--mono); }
+.h1 { font-size:1.6rem; font-weight:700; line-height:1.2; letter-spacing:-.01em; }
+.h2 { font-size:1.15rem; font-weight:700; }
+.content { flex:1; padding:20px 18px 28px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--pen);
+  color:var(--paper); font-weight:600; font-size:.9rem; padding:13px 24px; border-radius:999px; transition:.15s; }
+.btn:hover { background:var(--pen-deep); }
+.btn-ghost { background:transparent; color:var(--pen); border:2px solid var(--pen); }
+.btn-ghost:hover { background:var(--pen); color:var(--paper); }
+.card { background:var(--paper); border:1px solid var(--ruled); border-radius:18px; padding:20px 18px;
+  box-shadow:0 1px 2px rgba(24,34,59,.05); }
+.pill { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:999px; white-space:nowrap;
+  font-family:var(--mono); font-size:.68rem; font-weight:600; background:rgba(47,91,255,.10); color:var(--pen); }
+.pill.warn { background:rgba(220,38,38,.09); color:var(--bad); }
+.pill.ok { background:rgba(22,101,52,.10); color:var(--correct); }
+.row { display:flex; align-items:center; gap:10px; }
+.bar { height:4px; background:var(--ruled); border-radius:999px; overflow:hidden; }
+.bar > i { display:block; height:100%; background:var(--pen); }
+.field { width:100%; background:transparent; border:none; border-bottom:2px solid var(--ruled);
+  padding:10px 2px; color:var(--ink); outline:none; }
+.field:focus { border-color:var(--pen); }
+.ruled { background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 37px,#ECE6D8 37px,#ECE6D8 38px);
+  background-position:0 12px; }
+
+/* ═══ ตัวเลือกคำตอบ (คงพื้นฐาน OMR เดิม) ═══ */
+.choices { display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+.choice { display:flex; align-items:center; gap:13px; width:100%; text-align:left; padding:12px 14px;
+  border:2px solid var(--ruled); border-radius:14px; transition:.15s; background:var(--paper); }
+.choice:hover { border-color:var(--pen); background:rgba(243,239,230,.5); }
+.bub { flex:none; width:27px; height:27px; border-radius:999px; border:2px solid currentColor; display:flex;
+  align-items:center; justify-content:center; font-family:var(--mono); font-size:.7rem; font-weight:600; }
+.choice.right { border-color:var(--correct); background:rgba(22,101,52,.08); }
+.choice.right .bub { background:var(--correct); color:#fff; border-color:var(--correct); }
+.choice.wrong { border-color:var(--bad); background:rgba(220,38,38,.06); color:#B91C1C; }
+.choice.wrong .bub { background:var(--bad); color:#fff; border-color:var(--bad); }
+.choice.dim { opacity:.45; }
+
+/* ═══ แถบ nav — ทรงต่างกันตาม variant ═══ */
+.appbar { position:sticky; top:0; z-index:20; background:rgba(251,250,246,.92); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--ruled); }
+.appbar .in { display:flex; align-items:center; gap:10px; padding:11px 16px; }
+.brand { display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:1rem; }
+.brand i { width:19px; height:19px; border-radius:999px; background:var(--pen); color:var(--paper);
+  font-size:.58rem; font-style:normal; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.metabar { display:flex; gap:7px; padding:0 16px 10px; overflow-x:auto; }
+.tabs { position:sticky; bottom:0; z-index:20; display:flex; background:var(--paper);
+  border-top:1px solid var(--ruled); padding:7px 4px calc(7px + env(safe-area-inset-bottom)); }
+.tabs a { flex:1; text-align:center; font-size:.66rem; color:var(--soft); padding:3px 0; }
+.tabs a b { display:block; font-size:1rem; font-weight:400; line-height:1.5; }
+.tabs a.on { color:var(--pen); font-weight:600; }
+.railwrap { display:flex; flex:1; min-height:100vh; }
+.rail { width:66px; flex:none; border-right:1px solid var(--ruled); background:var(--panel);
+  display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 0; position:sticky; top:0; height:100vh; }
+.rail a { width:48px; padding:8px 0; border-radius:12px; text-align:center; font-size:.58rem; color:var(--soft); }
+.rail a b { display:block; font-size:1rem; font-weight:400; }
+.rail a.on { background:rgba(47,91,255,.12); color:var(--pen); font-weight:600; }
+.ring { width:36px; height:36px; border-radius:999px; display:grid; place-items:center;
+  background:conic-gradient(var(--pen) calc(var(--p,60)*1%), var(--ruled) 0); }
+.ring span { width:28px; height:28px; border-radius:999px; background:var(--panel); display:grid; place-items:center;
+  font-family:var(--mono); font-size:.62rem; font-weight:600; color:var(--pen); }
+.avatar { width:30px; height:30px; flex:none; border-radius:999px; background:var(--panel); border:1px solid var(--ruled);
+  display:grid; place-items:center; font-size:.72rem; font-weight:600; color:var(--soft); }
+
+/* ═══ พื้นผิวเฉลย ═══ */
+.fb-inline { margin-top:18px; padding-top:16px; border-top:1px solid var(--ruled);
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.fb-bar { position:sticky; bottom:0; z-index:19; background:var(--paper); border-top:2px solid var(--ruled);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom)); display:flex; align-items:center; gap:12px; }
+.fb-sheet { position:sticky; bottom:0; z-index:19; background:var(--paper); border:1px solid var(--ruled);
+  border-bottom:none; border-radius:22px 22px 0 0; box-shadow:0 -14px 40px -20px rgba(24,34,59,.4);
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom)); animation:up .22s ease-out; }
+@keyframes up { from { transform:translateY(30px); opacity:0 } to { transform:none; opacity:1 } }
+.fab { position:sticky; bottom:16px; margin:16px 16px 0 auto; display:flex; width:max-content; }
+.fab .btn { box-shadow:0 10px 26px -10px rgba(47,91,255,.7); }
+.grabber { width:38px; height:4px; border-radius:999px; background:var(--ruled); margin:0 auto 14px; }
+
+/* iPad ขึ้นไป: split เฉพาะ variant E */
+.split { display:grid; gap:18px; }
+body[data-v="split"][data-dev="tablet"] .split,
+body[data-v="split"][data-dev="desktop"] .split { grid-template-columns:1fr 340px; align-items:start; }
+body[data-dev="desktop"] .content { max-width:880px; margin:0 auto; width:100%; }
+
+/* ═══ PICKER ═══ */
+#picker { position:fixed; right:18px; bottom:18px; z-index:999; width:316px; background:#0f1117; color:#fff;
+  border:1px solid #2a2f3d; border-radius:14px; box-shadow:0 24px 60px -12px rgba(0,0,0,.55);
+  font-family:var(--mono); font-size:12px; user-select:none; overflow:hidden; }
+#picker .hd { display:flex; align-items:center; gap:8px; padding:9px 12px; background:#171a23; cursor:grab; }
+#picker .hd.drag { cursor:grabbing; }
+#picker .hd b { font-size:10px; letter-spacing:.14em; color:#7d8699; font-weight:400; }
+#picker .hd .x { margin-left:auto; color:#7d8699; padding:0 4px; cursor:pointer; }
+#picker .bd { padding:12px; display:flex; flex-direction:column; gap:11px; }
+#picker .cyc { display:flex; align-items:center; gap:10px; }
+#picker .cyc button { width:30px; height:30px; border-radius:8px; background:#232838; font-size:14px; }
+#picker .cyc button:hover { background:#323a52; }
+#picker .name { flex:1; text-align:center; }
+#picker .name b { display:block; font-size:13px; font-family:var(--font); }
+#picker .name span { font-size:10px; color:#7d8699; line-height:1.4; display:block; }
+#picker .lbl { font-size:9px; letter-spacing:.16em; color:#5d6577; margin-bottom:5px; }
+#picker .chips { display:flex; flex-wrap:wrap; gap:5px; }
+#picker .chips button { padding:5px 9px; border-radius:7px; background:#232838; color:#aeb6c8; font-size:11px; }
+#picker .chips button.on { background:#4f7cff; color:#fff; }
+#picker .hint { font-size:10px; color:#5d6577; line-height:1.5; border-top:1px solid #232838; padding-top:9px; }
+#picker.min .bd { display:none; }
+</style>
+</head>
+<body data-v="sheet" data-dev="mobile">
+
+<div class="devlabel" id="devlabel"></div>
+<div class="viewport" id="app"></div>
+
+<div id="picker">
+  <div class="hd"><b>◇ รอบ 2 · โครงหน้าใน</b><span class="x" id="pk-min">—</span></div>
+  <div class="bd">
+    <div class="cyc">
+      <button id="pk-prev">←</button>
+      <div class="name"><b id="pk-name"></b><span id="pk-desc"></span></div>
+      <button id="pk-next">→</button>
+    </div>
+    <div><div class="lbl">หน้าจอ</div><div class="chips" id="pk-pages"></div></div>
+    <div id="pk-states-wrap"><div class="lbl">สถานะ</div><div class="chips" id="pk-states"></div></div>
+    <div><div class="lbl">อุปกรณ์</div><div class="chips" id="pk-dev"></div></div>
+    <div class="hint">←/→ = สลับโครง · ธีมกับน้ำเสียงล็อกแล้ว เหลือแค่โครงที่ต่างกัน</div>
+  </div>
+</div>
+
+<script>
+/* ══════════════ 5 โครงหน้าใน ══════════════ */
+const VARIANTS = [
+  { id:'sheet', name:'A · Sheet', desc:'ไม่มีการ์ด โจทย์อยู่บนกระดาษเต็มหน้า · เฉลยเป็นแถบล่างติดขอบจอ', nav:'top' },
+  { id:'tabs',  name:'B · Card + Tabs', desc:'การ์ดลอยกลางจอ + แท็บล่าง 4 อัน · เฉลยเด้งขึ้นเป็น bottom sheet', nav:'tabs' },
+  { id:'focus', name:'C · Focus', desc:'ไม่มีเมนูระหว่างทำโจทย์ เหลือ progress กับปุ่มออก · เฉลยแทนที่โจทย์ทั้งใบ', nav:'focus' },
+  { id:'rich',  name:'D · Rich header', desc:'แถบบน 2 ชั้น โชว์ระดับ/โควตา/ความต่อเนื่อง · เฉลยแทรกในการ์ด ปุ่มถัดไปลอยมุมขวา', nav:'rich' },
+  { id:'split', name:'E · Split (iPad)', desc:'แถบข้างซ้าย · iPad แยก 2 คอลัมน์ โจทย์ | ตัวเลือก · เฉลยอยู่คอลัมน์ขวา', nav:'rail' }
+];
+
+const PAGES = [
+  {id:'practice', label:'ฝึกโจทย์', states:[['normal','ยังไม่ตอบ'],['answered','ตอบถูก'],['wrong','ตอบผิด'],['quota','โควตาหมด']]},
+  {id:'mock', label:'Mock', states:[['setup','ตั้งค่า'],['exam','กำลังสอบ'],['result','ผลสอบ']]},
+  {id:'social', label:'สนามสอบ'},
+  {id:'login', label:'เข้าสู่ระบบ'}
+];
+const DEVS = [['mobile','มือถือ 390'],['tablet','iPad 834'],['desktop','Desktop 1200']];
+const DEV_W = {mobile:'390px', tablet:'834px', desktop:'1200px'};
+
+const S = { v:0, page:'practice', st:{practice:'normal', mock:'setup'}, dev:'mobile' };
+const V = () => VARIANTS[S.v];
+
+const Q = {
+  subject:'คณิตศาสตร์', topic:'พีชคณิต', level:'ระดับ 3/5',
+  text:'ถ้า f(x) = 2x² − 5x + 3 แล้วผลบวกของรากทั้งหมดของสมการ f(x) = 0 มีค่าเท่าใด',
+  choices:['3/2','5/2','2','5'], answer:'5/2'
+};
+const LABELS = ['ก','ข','ค','ง'];
+const NAVITEMS = [['practice','ฝึกโจทย์','✎'],['social','สนามสอบ','◎'],['mock','Mock','◷'],['login','บัญชี','◔']];
+
+/* ══════════════ ชิ้นส่วน ══════════════ */
+function topbarSimple(quota){
+  return `<div class="appbar"><div class="in">
+    <span class="brand">TCAS<i>ai</i></span>
+    <span class="pill" style="margin-left:auto">${quota ? 'เหลือ 4 ข้อ' : Q.level}</span>
+    <span class="avatar">ZN</span>
+  </div></div>`;
+}
+function navHTML(){
+  const v = V();
+  if (v.nav === 'focus') {
+    if (S.page !== 'practice' && S.page !== 'mock') return topbarSimple();
+    return `<div class="appbar"><div class="in" style="gap:14px">
+      <a class="muted" style="font-size:1.05rem" onclick="go('login')">✕</a>
+      <div style="flex:1"><div class="bar"><i style="width:45%"></i></div></div>
+      <span class="mono" style="font-size:.7rem;color:var(--soft)">9 / 20</span>
+    </div></div>`;
+  }
+  if (v.nav === 'rich') {
+    return `<div class="appbar">
+      <div class="in"><span class="brand">TCAS<i>ai</i></span>
+        <nav class="row" style="gap:14px;margin-left:12px;font-size:.8rem">
+          ${NAVITEMS.slice(0,3).map(([p,l])=>`<a class="${S.page===p?'':'muted'}" onclick="go('${p}')">${l}</a>`).join('')}
+        </nav>
+        <span class="avatar" style="margin-left:auto">ZN</span></div>
+      <div class="metabar">
+        <span class="pill">${Q.level}</span>
+        <span class="pill ok">วันนี้ทำแล้ว 6 ข้อ</span>
+        <span class="pill">เหลือโควตา 4 ข้อ</span>
+        <span class="pill">ต่อเนื่อง 7 วัน</span>
+      </div></div>`;
+  }
+  if (v.nav === 'tabs') return topbarSimple(true);
+  return topbarSimple();
+}
+function tabsHTML(){
+  if (V().nav !== 'tabs') return '';
+  return `<nav class="tabs">${NAVITEMS.map(([p,l,i])=>
+    `<a class="${S.page===p?'on':''}" onclick="go('${p}')"><b>${i}</b>${l}</a>`).join('')}</nav>`;
+}
+function railHTML(){
+  const items = [['practice','ฝึก','✎'],['social','สนาม','◎'],['mock','Mock','◷'],['login','บัญชี','◔']];
+  return `<aside class="rail">
+    <span class="brand" style="margin-bottom:10px"><i>ai</i></span>
+    ${items.map(([p,l,i])=>`<a class="${S.page===p?'on':''}" onclick="go('${p}')"><b>${i}</b>${l}</a>`).join('')}
+    <div class="ring" style="--p:60;margin-top:auto"><span>4</span></div>
+  </aside>`;
+}
+function choicesHTML(){
+  const st = S.st.practice, revealed = S.page==='practice' && (st==='answered'||st==='wrong');
+  return `<div class="choices">${Q.choices.map((c,i)=>{
+    let cls='';
+    if (revealed) cls = (c===Q.answer) ? 'right' : (st==='wrong' && i===0 ? 'wrong' : 'dim');
+    return `<button class="choice ${cls}" onclick="setSt('practice','answered')">
+      <span class="bub">${LABELS[i]}</span><span style="flex:1">${c}</span>
+      ${cls==='right'?'<span style="color:var(--correct)">✓</span>':''}</button>`;
+  }).join('')}</div>`;
+}
+function fbText(){
+  return S.st.practice === 'wrong'
+    ? `<span style="color:var(--bad);font-weight:600;font-size:.9rem">ยังไม่ถูก — คำตอบที่ถูกคือ “${Q.answer}”</span>`
+    : `<span style="color:var(--correct);font-weight:600;font-size:.9rem">ตอบถูก ใช้เวลา 24 วินาที</span>`;
+}
+function nextBtn(style){ return `<button class="btn" style="${style||''}" onclick="setSt('practice','normal')">ข้อต่อไป →</button>`; }
+
+/* ══════════════ หน้า ══════════════ */
+function practice(){
+  const v = V(), st = S.st.practice;
+
+  if (st === 'quota') return `<div class="content" style="display:grid;place-items:center">
+    <div class="card" style="text-align:center;background:var(--warm);border-color:var(--warm-bd);max-width:340px">
+      <div style="width:44px;height:44px;border-radius:999px;background:var(--mark);opacity:.6;margin:0 auto 16px"></div>
+      <h2 class="h2" style="margin-bottom:8px">โจทย์ของวันนี้หมดแล้ว</h2>
+      <p class="muted" style="font-size:.88rem;margin-bottom:20px">แผนฟรีทำได้วันละ 10 ข้อ อัปเกรดเพื่อฝึกได้ไม่จำกัด และให้ระบบปรับระดับให้ตลอด</p>
+      <a class="btn" style="width:100%">ดูแพ็กเกจ</a>
+      <p class="muted" style="font-size:.78rem;margin-top:12px">หรือกลับมาใหม่พรุ่งนี้ 06:00 น.</p>
+    </div></div>`;
+
+  const revealed = st==='answered' || st==='wrong';
+  const meta = `<div class="row" style="justify-content:space-between;margin-bottom:14px">
+      <span class="eyebrow">${Q.subject} · ${Q.topic}</span>
+      ${v.nav==='focus' ? `<span class="pill">${Q.level}</span>` : ''}
+    </div>`;
+  const qBlock = `<p style="font-size:1.05rem;line-height:1.75">${Q.text}</p>`;
+
+  /* A — ไม่มีการ์ด บนกระดาษเส้นบรรทัด + แถบเฉลยล่าง */
+  if (v.id === 'sheet') return `
+    <div class="content ruled">${meta}${qBlock}${choicesHTML()}</div>
+    ${revealed ? `<div class="fb-bar">${fbText()}<span style="margin-left:auto">${nextBtn()}</span></div>` : ''}`;
+
+  /* B — การ์ด + bottom sheet */
+  if (v.id === 'tabs') return `
+    <div class="content">${meta}<div class="card">${qBlock}${choicesHTML()}</div></div>
+    ${revealed ? `<div class="fb-sheet"><div class="grabber"></div>
+      <div style="text-align:center;margin-bottom:16px">${fbText()}
+        <p class="muted" style="font-size:.82rem;margin-top:6px">ระดับของข้อถัดไปจะปรับตามผลข้อนี้</p></div>
+      ${nextBtn('width:100%')}</div>` : ''}`;
+
+  /* C — เฉลยแทนที่โจทย์ทั้งใบ */
+  if (v.id === 'focus') {
+    if (!revealed) return `<div class="content">${meta}<div class="card">${qBlock}${choicesHTML()}</div></div>`;
+    const wrong = st==='wrong';
+    return `<div class="content" style="display:grid;place-items:center">
+      <div class="card" style="text-align:center;max-width:360px;width:100%">
+        <div style="width:56px;height:56px;border-radius:999px;margin:0 auto 16px;display:grid;place-items:center;font-size:1.4rem;
+             background:${wrong?'rgba(220,38,38,.09)':'rgba(22,101,52,.10)'};color:${wrong?'var(--bad)':'var(--correct)'}">
+          ${wrong?'✕':'✓'}</div>
+        <h2 class="h2" style="margin-bottom:6px">${wrong?'ยังไม่ถูก':'ตอบถูก'}</h2>
+        <p class="muted" style="font-size:.88rem">${wrong?`คำตอบที่ถูกคือ “${Q.answer}”`:'ใช้เวลา 24 วินาที'}</p>
+        <div style="border-top:1px solid var(--ruled);margin:18px 0;padding-top:16px;text-align:left">
+          <p class="eyebrow" style="margin-bottom:6px">แนวคิด</p>
+          <p style="font-size:.88rem;line-height:1.7">ผลบวกของรากของสมการกำลังสอง ax² + bx + c = 0 เท่ากับ −b/a จึงได้ 5/2 โดยไม่ต้องแก้สมการ</p>
+        </div>
+        ${nextBtn('width:100%')}
+        <p class="muted" style="font-size:.78rem;margin-top:12px">ทำต่อเนื่องมาแล้ว 9 ข้อ</p>
+      </div></div>`;
+  }
+
+  /* D — เฉลย inline + ปุ่มลอย */
+  if (v.id === 'rich') return `
+    <div class="content">${meta}<div class="card">${qBlock}${choicesHTML()}
+      ${revealed ? `<div class="fb-inline">${fbText()}
+        <span class="muted" style="font-size:.8rem">ระดับ 3 → 3 · เรตติ้ง +18</span></div>` : ''}
+    </div></div>
+    ${revealed ? `<div class="fab">${nextBtn()}</div>` : ''}`;
+
+  /* E — split */
+  return `<div class="content"><div class="split">
+      <div>${meta}<div class="card">${qBlock}
+        <div class="muted" style="font-size:.8rem;margin-top:16px;border-top:1px dashed var(--ruled);padding-top:12px">
+          ข้อนี้ผ่านการตรวจซ้ำด้วย 2 โมเดลแล้ว</div></div></div>
+      <div><div class="card">
+        <p class="eyebrow" style="margin-bottom:12px">เลือกคำตอบ</p>
+        ${choicesHTML().replace('margin-top:20px','margin-top:0')}
+        ${revealed ? `<div class="fb-inline" style="flex-direction:column;align-items:stretch;gap:12px">
+          ${fbText()}${nextBtn('width:100%')}</div>` : ''}
+      </div></div>
+    </div></div>`;
+}
+
+function mock(){
+  const st = S.st.mock;
+  if (st === 'setup') return `<div class="content">
+    <span class="eyebrow">จำลองสนามจริง</span>
+    <h1 class="h1" style="margin:8px 0 6px">Mock Exam</h1>
+    <p class="muted" style="font-size:.9rem;margin-bottom:26px">10 ข้อ · คณิตศาสตร์ · ระบบจะสรุปหัวข้อที่ควรทบทวนให้หลังสอบ</p>
+    <label class="muted" style="font-size:.85rem">คณะเป้าหมาย (ไม่บังคับ)</label>
+    <input class="field" placeholder="เช่น วิศวกรรมศาสตร์ จุฬาฯ" style="margin:6px 0 24px">
+    <button class="btn" style="width:100%" onclick="setSt('mock','exam')">เริ่มสอบ →</button>
+    <p class="muted" style="font-size:.78rem;margin-top:14px;text-align:center">ระหว่างสอบจะไม่เฉลยทีละข้อ</p>
+  </div>`;
+  if (st === 'exam') return `<div class="content">
+    <div class="bar" style="margin-bottom:14px"><i style="width:40%"></i></div>
+    <div class="row" style="justify-content:space-between;margin-bottom:16px">
+      <span class="eyebrow">ข้อ 4 / 10</span><span class="pill">เวลา 12:40</span></div>
+    <div class="card"><p style="font-size:1.05rem;line-height:1.75">${Q.text}</p>${choicesHTML()}</div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:18px" onclick="setSt('mock','result')">ส่งคำตอบ</button>
+  </div>`;
+  return `<div class="content">
+    <span class="eyebrow">ผลสอบ</span>
+    <h1 class="h1" style="margin:8px 0 20px">Mock Exam เสร็จแล้ว</h1>
+    <div class="card" style="text-align:center;background:var(--panel)">
+      <div class="mono" style="font-size:3.4rem;font-weight:700;color:var(--correct);line-height:1">70%</div>
+      <p class="muted" style="font-size:.88rem;margin-top:8px">ตอบถูก 7 จาก 10 ข้อ</p>
+      <p style="margin-top:14px">โอกาสติด: <b>ปานกลาง</b></p>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p style="font-weight:600;margin-bottom:12px">หัวข้อที่ควรทบทวน</p>
+      <div class="row" style="flex-wrap:wrap;gap:8px">
+        ${['ตรีโกณมิติ','ลอการิทึม','ความน่าจะเป็น'].map(t=>`<span class="pill warn">${t}</span>`).join('')}</div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="setSt('mock','setup')">สอบอีกครั้ง</button>
+  </div>`;
+}
+
+function social(){
+  return `<div class="content">
+    <span class="eyebrow">แข่งกับเพื่อนสูงสุด 10 คน</span>
+    <h1 class="h1" style="margin:8px 0 22px">สนามสอบ Real-time</h1>
+    <div class="split" style="grid-template-columns:1fr">
+      <div class="card">
+        <span class="eyebrow" style="color:var(--pen)">เจ้าของห้อง</span>
+        <h2 class="h2" style="margin:8px 0 6px">สร้างห้องใหม่</h2>
+        <p class="muted" style="font-size:.88rem;margin-bottom:16px">เปิดห้องแล้วแชร์รหัสให้เพื่อน ผู้สร้างเป็นคนกดเริ่ม</p>
+        <button class="btn" style="width:100%">สร้างห้องใหม่</button>
+      </div>
+      <div class="card">
+        <span class="eyebrow">ผู้เข้าร่วม</span>
+        <h2 class="h2" style="margin:8px 0 6px">เข้าร่วมห้อง</h2>
+        <p class="muted" style="font-size:.88rem;margin-bottom:16px">ใส่รหัส 6 หลักที่ได้รับจากเพื่อน</p>
+        <input class="field mono" placeholder="ABC123" style="text-align:center;letter-spacing:.3em;font-size:1.1rem;margin-bottom:14px">
+        <button class="btn btn-ghost" style="width:100%">เข้าร่วม</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function login(){
+  return `<div class="content" style="display:grid;place-items:center">
+    <div style="width:100%;max-width:330px">
+      <span class="eyebrow">ยินดีต้อนรับกลับ</span>
+      <h1 class="h1" style="margin:8px 0 28px">เข้าสู่ระบบ</h1>
+      <label class="muted" style="font-size:.85rem">อีเมล</label>
+      <input class="field" placeholder="you@example.com" style="margin:6px 0 20px">
+      <label class="muted" style="font-size:.85rem">รหัสผ่าน</label>
+      <input class="field" type="password" placeholder="••••••••" style="margin:6px 0 26px">
+      <button class="btn" style="width:100%">เข้าสู่ระบบ</button>
+      <p class="muted" style="text-align:center;margin-top:20px;font-size:.86rem">ยังไม่มีบัญชี?
+        <a style="color:var(--pen);font-weight:600">สมัครฟรี</a></p>
+    </div></div>`;
+}
+
+const R = {practice, mock, social, login};
+
+/* ══════════════ runner ══════════════ */
+function render(){
+  const v = V();
+  document.body.dataset.v = v.id;
+  document.body.dataset.dev = S.dev;
+  document.documentElement.style.setProperty('--dev', DEV_W[S.dev]);
+  document.getElementById('app').innerHTML =
+    v.nav === 'rail'
+      ? `<div class="railwrap">${railHTML()}<div style="flex:1;display:flex;flex-direction:column;min-width:0">${topbarSimple()}${R[S.page]()}</div></div>`
+      : navHTML() + R[S.page]() + tabsHTML();
+  document.getElementById('devlabel').textContent =
+    (DEVS.find(d=>d[0]===S.dev)||['',''])[1] + '  ·  ' + v.name;
+  document.getElementById('pk-name').textContent = v.name;
+  document.getElementById('pk-desc').textContent = v.desc;
+  document.getElementById('pk-pages').innerHTML = PAGES.map(p=>
+    `<button class="${p.id===S.page?'on':''}" onclick="go('${p.id}')">${p.label}</button>`).join('');
+  const pg = PAGES.find(p=>p.id===S.page), w = document.getElementById('pk-states-wrap');
+  if (pg && pg.states) { w.style.display='';
+    document.getElementById('pk-states').innerHTML = pg.states.map(([s,l])=>
+      `<button class="${S.st[pg.id]===s?'on':''}" onclick="setSt('${pg.id}','${s}')">${l}</button>`).join('');
+  } else w.style.display='none';
+  document.getElementById('pk-dev').innerHTML = DEVS.map(([d,l])=>
+    `<button class="${S.dev===d?'on':''}" onclick="setDev('${d}')">${l}</button>`).join('');
+}
+function go(p){ S.page=p; render(); }
+function setSt(p,s){ S.st[p]=s; render(); }
+function setDev(d){ S.dev=d; render(); }
+function cycle(n){ S.v=(S.v+n+VARIANTS.length)%VARIANTS.length; render(); }
+
+document.getElementById('pk-prev').onclick=()=>cycle(-1);
+document.getElementById('pk-next').onclick=()=>cycle(1);
+document.getElementById('pk-min').onclick=()=>document.getElementById('picker').classList.toggle('min');
+addEventListener('keydown', e=>{
+  if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.key==='ArrowLeft') cycle(-1);
+  if (e.key==='ArrowRight') cycle(1);
+});
+(function(){
+  const p=document.getElementById('picker'), h=p.querySelector('.hd'); let dx=0,dy=0,on=false;
+  h.addEventListener('pointerdown',e=>{ on=true; h.classList.add('drag'); h.setPointerCapture(e.pointerId);
+    const r=p.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top;
+    p.style.right='auto'; p.style.bottom='auto'; p.style.left=r.left+'px'; p.style.top=r.top+'px'; });
+  h.addEventListener('pointermove',e=>{ if(!on)return;
+    p.style.left=Math.max(0,Math.min(innerWidth-p.offsetWidth,e.clientX-dx))+'px';
+    p.style.top=Math.max(0,Math.min(innerHeight-40,e.clientY-dy))+'px'; });
+  h.addEventListener('pointerup',()=>{ on=false; h.classList.remove('drag'); });
+})();
+render();
+</script>
+</body>
+</html>
